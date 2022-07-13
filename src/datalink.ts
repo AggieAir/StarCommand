@@ -27,6 +27,8 @@ export class Datalink {
 	private socket?: WebSocket;
 	private callbacks: FilteredCallback[] = [];
 
+	private on_close_callbacks: (() => void)[] = [];
+
 	private _address?: string;
 	private _port?: number;
 	private readonly beforeunload: (this: Datalink) => void;
@@ -39,6 +41,10 @@ export class Datalink {
 
 	public get port(): Optional<number> {
 		return this._port;
+	}
+
+	public get connected(): boolean {
+		return this.socket !== undefined;
 	}
 
 	public static get_link(): Datalink {
@@ -69,6 +75,13 @@ export class Datalink {
 			this.socket.onmessage = (data) => {
 				that.on_recv(data);
 			};
+			this.socket.onclose = () => {
+				this.socket = undefined;
+				this._address = undefined;
+				this._port = undefined;
+				window.removeEventListener('beforeunload', this.beforeunload);
+				this.on_close_callbacks.forEach((callback) => callback());
+			};
 			window.addEventListener('beforeunload', this.beforeunload);
 		});
 	}
@@ -76,11 +89,7 @@ export class Datalink {
 	public disconnect(): void {
 		if (this.socket) {
 			this.socket.close();
-			window.removeEventListener('beforeunload', this.beforeunload);
 		}
-		this._address = undefined;
-		this._port = undefined;
-		this.socket = undefined;
 	}
 
 	private validate_msg(msg: any): msg is Message {
@@ -119,7 +128,27 @@ export class Datalink {
 		});
 	}
 
+	public on_close(callback: () => void): void {
+		this.on_close_callbacks.push(callback);
+	}
+
+	public off_close(callback: () => void): void {
+		this.on_close_callbacks = this.on_close_callbacks.filter(
+			(c) => c !== callback
+		);
+	}
+
 	public off(callback: MessageCallback): void {
 		this.callbacks = this.callbacks.filter((cb) => cb.callback !== callback);
+	}
+
+	public wait_for(filters: MessageFilter[]): Promise<Message> {
+		return new Promise((resolve) => {
+			const callback = (msg: Message) => {
+				this.off(callback);
+				resolve(msg);
+			};
+			this.on(filters, callback);
+		});
 	}
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts"></script>
 
 <template>
-	<main>Working!</main>
+	<div>You shouldn't see this...</div>
 </template>

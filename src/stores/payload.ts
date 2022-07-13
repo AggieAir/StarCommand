@@ -19,9 +19,12 @@ export const usePayloadStore = defineStore({
 		};
 	},
 	actions: {
-		initialize(config: MissionConfiguration) {
-			if (this.payload?.config?.uuid !== config.uuid) {
+		async initialize(config?: MissionConfiguration) {
+			if (config && this.payload?.config?.uuid !== config.uuid) {
 				this.payload = new Payload(config);
+			} else if (!config) {
+				// TODO: get config from database
+				this.payload = new Payload();
 			}
 		},
 	},

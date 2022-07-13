@@ -8,7 +8,7 @@
 
 <style scoped>
 .overlay {
-	position: fixed;
+	position: absolute;
 	top: 0;
 	left: 0;
 	width: 100%;
@@ -26,3 +26,9 @@
 	background-color: var(--color-background);
 }
 </style>
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+export default defineComponent({});
+</script>
