@@ -18,6 +18,11 @@ export const usePayloadStore = defineStore({
 			payload: null as Payload | null,
 		};
 	},
+	getters: {
+		config: (state) => {
+			return state.payload?.config;
+		},
+	},
 	actions: {
 		async initialize(config?: MissionConfiguration) {
 			if (config && this.payload?.config?.uuid !== config.uuid) {
