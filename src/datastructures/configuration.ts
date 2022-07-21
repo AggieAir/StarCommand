@@ -43,6 +43,14 @@ export type MissionConfiguration = {
 	capture_groups: CaptureGroupConfiguration[]; // List of CaptureGroupConfiguration objects
 };
 
+export interface MissionMetadata {
+	name: string;
+	uuid: string;
+	date: string;
+	payload: string;
+	aircraft: string;
+}
+
 export function validate_node(obj: any): obj is NodeConfiguration {
 	return (
 		obj != null &&
@@ -187,4 +195,30 @@ export function check_constraint(
 	}
 
 	return constraint.invert ? !result : result;
+}
+
+/**
+ * Creates a new UUID.
+ * @returns A new UUID.
+ *
+ * @remarks
+ * We can't rely on the crypto-random UUID generator because it doesn't support
+ * running in insecure contexts, and we need to be able to generate UUIDs in
+ * the browser when running on a local server.
+ */
+export function generate_uuid(): string {
+	if (crypto.randomUUID !== undefined) {
+		return crypto.randomUUID();
+	}
+	console.warn('Warning: falling back to insecure UUID generator.');
+	const random_bytes = crypto.getRandomValues(new Uint8Array(16));
+	let index = 0;
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+		const randnum =
+			index % 2 == 0
+				? random_bytes[(index / 2) | 0] % 16
+				: random_bytes[(index / 2) | 0] >> 4;
+		const value = char === 'x' ? randnum : (randnum & 0x3) | 0x8;
+		return value.toString(16);
+	});
 }

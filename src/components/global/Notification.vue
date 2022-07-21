@@ -7,6 +7,7 @@
 	>
 		<div class="title">{{ notification.title }}</div>
 		<div class="message">{{ notification.message }}</div>
+		<div class="hint">Right-click this notification to dismiss</div>
 	</div>
 </template>
 
@@ -52,6 +53,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
+@import '@/assets/base.scss';
 .notification {
 	flex: 0 0 auto;
 	padding: 5px;
@@ -64,30 +66,38 @@ export default defineComponent({
 		font-weight: bold;
 	}
 	.message {
+		font-size: small;
+	}
+	&:last-child .hint {
 		font-size: smaller;
+		font-style: italic;
+		color: var(--color-border-hover);
+	}
+	&:not(:last-child) .hint {
+		display: none;
 	}
 }
 
 .notification.critical {
-	border-color: var(--color-error);
+	border-color: $color-error;
 	.title {
-		color: var(--color-error);
+		color: $color-error;
 	}
 }
 
 .notification.high {
-	border-color: var(--color-error);
+	border-color: $color-error;
 
 	.title {
-		color: var(--color-error);
+		color: $color-error;
 	}
 }
 
 .notification.low {
-	border-color: var(--color-success);
+	border-color: $color-success;
 
 	.title {
-		color: var(--color-success);
+		color: $color-success;
 	}
 }
 

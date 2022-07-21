@@ -39,7 +39,7 @@ export class Notification {
 			this.id = Notification.id_counter++;
 		}
 
-		if (!timeout) {
+		if (timeout === undefined) {
 			timeout = Notification.TIMEOUT_DEFAULTS[this.urgency];
 		}
 		this.timeout = timeout;

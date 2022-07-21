@@ -21,6 +21,51 @@
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
 }
 
+/* pulling some colors from nord theme */
+$vt-c-nord1: #3b4252;
+$vt-c-nord0: #2e3440;
+$vt-c-nord2: #434c5e;
+$vt-c-nord3: #4c566a;
+$vt-c-nord4: #d8dee9;
+$vt-c-nord5: #e5e9f0;
+$vt-c-nord6: #eceff4;
+$vt-c-nord7: #8fbcbb;
+$vt-c-nord8: #88c0d0;
+$vt-c-nord9: #81a1c1;
+$vt-c-nord10: #5e81ac;
+$vt-c-nord11: #bf616a;
+$vt-c-nord12: #d08770;
+$vt-c-nord13: #ebcb8b;
+$vt-c-nord14: #a3be8c;
+$vt-c-nord15: #b48ead;
+
+$color-success: $vt-c-nord14;
+$color-error: $vt-c-nord11;
+$color-warning: $vt-c-nord12;
+$color-selected-1: $vt-c-nord8;
+$color-selected-2: $vt-c-nord7;
+$color-selected-3: $vt-c-nord9;
+$color-selected-bg: $vt-c-nord6;
+
+:root {
+  --vt-c-nord0: #3b4252;
+  --vt-c-nord1: #2e3440;
+  --vt-c-nord2: #434c5e;
+  --vt-c-nord3: #4c566a;
+  --vt-c-nord4: #d8dee9;
+  --vt-c-nord5: #e5e9f0;
+  --vt-c-nord6: #eceff4;
+  --vt-c-nord7: #8fbcbb;
+  --vt-c-nord8: #88c0d0;
+  --vt-c-nord9: #81a1c1;
+  --vt-c-nord10: #5e81ac;
+  --vt-c-nord11: #bf616a;
+  --vt-c-nord12: #d08770;
+  --vt-c-nord13: #ebcb8b;
+  --vt-c-nord14: #a3be8c;
+  --vt-c-nord15: #b48ead;
+}
+
 /* semantic color variables for this project */
 :root {
   --color-background: var(--vt-c-white);
@@ -33,18 +78,34 @@
   --color-heading: var(--vt-c-text-light-1);
   --color-text: var(--vt-c-text-light-1);
 
-  --color-success: #a3be8c;
-  --color-error: #bf616a;
+  --color-blue0: var(--vt-c-indigo);
+
+  --color-success: var(--vt-c-nord14);
+  --color-error: var(--vt-c-nord11);
+  --color-warning: var(--vt-c-nord12);
+
+  --color-green: var(--vt-c-nord14);
+  --color-red: var(--vt-c-nord11);
+  --color-yellow: var(--vt-c-nord13);
+  --color-blue: var(--vt-c-nord10);
+  --color-purple: var(--vt-c-nord15);
+  --color-orange: var(--vt-c-nord12);
+  --color-cyan: var(--vt-c-nord8);
+
+  --color-white: var(--vt-c-white);
 
   --section-gap: 160px;
 }
 
 /* semantic z index variables for this project */
 :root {
+  --z-index-background: -1;
   --z-index-modal: 100;
   --z-index-overlay: 99;
   --z-index-notification: 102;
   --z-index-statusbar: 101;
+  --z-index-contextmenu: 200;
+
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,6 +119,8 @@
 
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
+
+    --color-selected-bg: var(--vt-c-black-mute);
   }
 }
 

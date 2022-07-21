@@ -5,6 +5,11 @@ import StatusBar from './components/global/StatusBar.vue';
 import NavBar from './components/global/NavBar.vue';
 import NotificationList from './components/global/NotificationList.vue';
 import { useDatalink } from './stores/datalink';
+import Database from './database';
+import PayloadMonitorView from './views/PayloadMonitorView.vue';
+import ContextMenu from './components/widgets/ContextMenu.vue';
+import { useContextMenu } from './stores/context';
+import AlertBox from './components/widgets/AlertBox.vue';
 
 export default defineComponent({
 	computed: {
@@ -12,10 +17,43 @@ export default defineComponent({
 			return this.$route.name !== 'home';
 		},
 	},
-	components: { Modal, StatusBar, NavBar, NotificationList },
+	data: () => ({}),
+	components: {
+		Modal,
+		StatusBar,
+		NavBar,
+		NotificationList,
+		PayloadMonitorView,
+		ContextMenu,
+		AlertBox,
+	},
 	mounted() {
+		// Connect to the datalink server.
 		const datalink = useDatalink();
 		datalink.connect();
+
+		// Force initialization of the database.
+		Database.get_database();
+
+		// Block default context menu.
+		document.addEventListener('contextmenu', (e) => {
+			e.preventDefault();
+			return false;
+		});
+
+		// Bind esc to close context menu or modal.
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				const contextMenu = useContextMenu();
+				if (contextMenu.is_open) {
+					contextMenu.close();
+				} else {
+					if (this.$route.name !== 'home') {
+						this.$router.back();
+					}
+				}
+			}
+		});
 	},
 });
 </script>
@@ -27,20 +65,21 @@ export default defineComponent({
 	</nav>
 	<div class="content">
 		<main>
-			<!-- <StatusMonitor /> -->
-			<div class="placeholder"></div>
+			<PayloadMonitorView />
 			<Modal v-if="router_visible">
 				<RouterView />
 			</Modal>
+			<AlertBox />
 		</main>
 	</div>
 	<footer>
 		<StatusBar />
 	</footer>
+	<ContextMenu />
 </template>
 
-<style>
-@import '@/assets/base.css';
+<style lang="scss">
+@import '@/assets/base.scss';
 </style>
 
 <style scoped>
@@ -49,9 +88,9 @@ main {
 	top: calc(1em+10px);
 	left: 0;
 	width: 100%;
-	min-height: calc(100% - 2em - 38px);
+	height: calc(100% - 2em - 38px);
 	overflow-y: scroll;
-	border: 1px solid red;
+	z-index: 0;
 }
 
 footer {

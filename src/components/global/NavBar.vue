@@ -5,8 +5,9 @@
 			v-for="({ target, text }, index) in linked_routes"
 			:to="target"
 			:key="index"
-			>{{ text }}</RouterLink
 		>
+			{{ text }}
+		</RouterLink>
 	</div>
 </template>
 

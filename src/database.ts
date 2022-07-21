@@ -1,4 +1,7 @@
-import type { MissionConfiguration } from '@/datastructures/configuration';
+import type {
+	MissionConfiguration,
+	MissionMetadata,
+} from '@/datastructures/configuration';
 import type {
 	AircraftDefinition,
 	AvionicsDefinition,
@@ -22,6 +25,7 @@ export enum Table {
 	SensorTemplate = 'sensor_template',
 	CaptureTypeDefinition = 'capture_type_definition',
 	CoprocessorDefinition = 'coprocessor_definition',
+	MissionMetadata = 'mission_metadata',
 }
 
 export type DatabaseStoredObject =
@@ -33,7 +37,8 @@ export type DatabaseStoredObject =
 	| MissionTemplate
 	| SensorTemplate
 	| CoprocessorDefinition
-	| CaptureTypeDefinition;
+	| CaptureTypeDefinition
+	| MissionMetadata;
 
 export type ExportFile = ExportMultiFile | ExportSingleFile;
 
@@ -69,6 +74,8 @@ export function file_extension(type: Table): string {
 			return 'coprocessor';
 		case Table.CaptureTypeDefinition:
 			return 'capturetype';
+		case Table.MissionMetadata:
+			return 'mission.metadata';
 	}
 }
 
@@ -202,6 +209,38 @@ export default class Database {
 				}),
 			};
 		},
+		(db: IDBDatabase) => {
+			console.log('Updating starcommand database version 1 to version 2');
+			const object_stores = {
+				mission_metadata: db.createObjectStore(Table.MissionMetadata, {
+					keyPath: 'name',
+				}),
+			};
+
+			const indices = {
+				mission_metadata: {
+					uuid: object_stores.mission_metadata.createIndex('uuid', 'uuid', {
+						unique: true,
+					}),
+					name: object_stores.mission_metadata.createIndex('name', 'name', {
+						unique: true,
+					}),
+					date: object_stores.mission_metadata.createIndex('date', 'date', {
+						unique: false,
+					}),
+					payload: object_stores.mission_metadata.createIndex(
+						'payload',
+						'payload',
+						{ unique: false }
+					),
+					aircraft: object_stores.mission_metadata.createIndex(
+						'aircraft',
+						'aircraft',
+						{ unique: false }
+					),
+				},
+			};
+		},
 	];
 
 	private constructor() {
@@ -247,7 +286,18 @@ export default class Database {
 			) as Promise<void>[];
 			return Promise.all(promises).then();
 		}
-		return this.save<DatabaseStoredObject>(object.type, object.content);
+		if (object.type === Table.MissionConfiguration) {
+			const data = object.content as MissionConfiguration;
+			const metadata: MissionMetadata = {
+				name: data.name,
+				date: data.date ?? '',
+				payload: data.payload ?? '',
+				aircraft: data.aircraft?.name ?? '',
+				uuid: data.uuid!,
+			};
+			await this.save(Table.MissionMetadata, metadata);
+		}
+		return this.save(object.type, object.content);
 	}
 
 	save<DataType>(table: Table, data: DataType): Promise<void> {

@@ -12,7 +12,13 @@ import type {
 	SensorConfiguration,
 	CaptureGroupConfiguration,
 } from './configuration';
-import type { NodeDefinition, NodeErrorDefinition } from './definition';
+import {
+	DataFieldType,
+	type NodeDataFieldDefinition,
+	type NodeDefinition,
+	type NodeErrorDefinition,
+} from './definition';
+import type { Dict } from '@/utility_types';
 
 export enum Status {
 	WAITING = -2,
@@ -25,25 +31,9 @@ export enum Status {
 	NEVER_ONLINE = 5,
 }
 
-export enum PayloadState {
-	OFFLINE,
-	INITIALIZE,
-	STANDBY,
-	CAPTURE,
-	SHUTDOWN,
-}
-
-export enum CaptureGroupState {
-	OFFLINE,
-	STANDBY,
-	CAPTURE,
-	SHUTDOWN,
-}
-
-export enum NodeState {
-	OFFLINE,
-	STANDBY,
-	RUNNING,
+export interface DataField {
+	definition: NodeDataFieldDefinition;
+	value: string | number | boolean;
 }
 
 class ErrorAccumulator {
@@ -107,11 +97,11 @@ export class Computer {
 	timestamp: number | undefined;
 	uptime: number | undefined;
 
-	private _cpus: number[] = [];
+	private _cpus: number[] = [0, 0, 0, 0];
 	private _cpu_bar_obj: BarObject = new BarObject(0, 1);
-	private _memory: Storage | undefined;
-	private _swap: Storage | undefined;
-	private _disks: MountList | undefined;
+	private _memory: Storage = new Storage();
+	private _swap: Storage = new Storage();
+	private _disks: MountList = {};
 	private _disk_bar_obj: BarObject = new BarObject(0, 1);
 	private _critical_mount: string | undefined;
 	private _status_cache: Status | null = null;
@@ -127,6 +117,14 @@ export class Computer {
 		});
 		this._cpu_bar_obj.value = sum / this._cpus.length;
 		return this._cpu_bar_obj;
+	}
+
+	get cpus() {
+		return this._cpus.map((cpu) => {
+			const bar_obj = new BarObject(0, 1);
+			bar_obj.value = cpu;
+			return bar_obj;
+		});
 	}
 
 	get disk_avg() {
@@ -149,17 +147,11 @@ export class Computer {
 	}
 
 	get memory() {
-		if (this._memory === undefined) {
-			return new BarObject(0, 1);
-		}
-		return this._memory.bar_obj;
+		return this._memory;
 	}
 
 	get swap() {
-		if (this._swap === undefined) {
-			return new BarObject(0, 1);
-		}
-		return this._swap.bar_obj;
+		return this._swap;
 	}
 
 	get last_update() {
@@ -256,8 +248,10 @@ export class Computer {
 export class DataNode {
 	name: string;
 	private _errors: number = 0; // 8-bit bitmask
+	private _data: Uint8Array = new Uint8Array(8);
+	private _parsed_data: DataField[] | undefined = undefined;
 	status = Status.OFFLINE;
-	state = NodeState.OFFLINE;
+	state = -1;
 	private _datapoints = {
 		total: 0,
 		failed: 0,
@@ -273,6 +267,33 @@ export class DataNode {
 		this.name = config.name!;
 		this.config = config;
 		this.definition = config.definition;
+	}
+
+	private get parsed_data(): DataField[] | undefined {
+		if (this.definition === undefined) {
+			return undefined;
+		}
+		const result = this.definition.data_fields.map((field, index) => {
+			return {
+				definition: field,
+				value: this.get_data_field(index),
+			};
+		});
+		if (!result.every((field) => field.value !== undefined)) {
+			return undefined;
+		}
+		return result as DataField[];
+	}
+
+	get data() {
+		return this._parsed_data;
+	}
+
+	get state_definition() {
+		if (this.definition === undefined) {
+			return undefined;
+		}
+		return this.definition.states[this.state];
 	}
 
 	get is_defined(): boolean {
@@ -292,12 +313,75 @@ export class DataNode {
 		return result;
 	}
 
+	private get_data_field(index: number): number | string | boolean | undefined {
+		if (this.definition === undefined) {
+			return undefined;
+		}
+		if (index >= this.definition.data_fields.length) {
+			return undefined;
+		}
+		const field_definition = this.definition.data_fields[index];
+		const field_position = this.definition.data_fields.reduce((acc, cur, i) => {
+			if (i < index) {
+				return acc + cur.size;
+			}
+			return acc;
+		}, 0);
+		const field_size = field_definition.size;
+		const field_view = new DataView(
+			this._data.buffer,
+			field_position,
+			field_size
+		);
+		switch (field_definition.type) {
+			case DataFieldType.UINT8:
+				return field_view.getUint8(0);
+			case DataFieldType.UINT16:
+				return field_view.getUint16(0);
+			case DataFieldType.UINT32:
+				return field_view.getUint32(0);
+			case DataFieldType.UINT64:
+				var high = field_view.getUint32(0);
+				var low = field_view.getUint32(4);
+				return (high << 32) | low;
+			case DataFieldType.INT8:
+				return field_view.getInt8(0);
+			case DataFieldType.INT16:
+				return field_view.getInt16(0);
+			case DataFieldType.INT32:
+				return field_view.getInt32(0);
+			case DataFieldType.INT64:
+				var high = field_view.getInt32(0);
+				var low = field_view.getInt32(4);
+				return (high << 32) | low;
+			case DataFieldType.FLOAT32:
+				return field_view.getFloat32(0);
+			case DataFieldType.FLOAT64:
+				return field_view.getFloat64(0);
+			case DataFieldType.STRING:
+				// TODO: Implement
+				return undefined;
+			case DataFieldType.BOOLEAN:
+				return field_view.getUint8(0) != 0;
+			case DataFieldType.ENUM:
+				const value = field_view.getUint8(0);
+				const enum_definition = field_definition.enum_definition;
+				if (enum_definition === undefined) {
+					return undefined;
+				}
+				return enum_definition[value];
+		}
+	}
+
 	parse_update(msg: NodeHeartbeat) {
 		let old_errors = this._errors;
 		this._errors = msg.errors;
-		this.state = msg.state as NodeState;
+		this.state = msg.state;
 		this._datapoints.total = msg.datapoints_received;
 		this._datapoints.failed = msg.datapoints_failed;
+		this._data = msg.data;
+		// Parse the arbitrary data fields
+		this._parsed_data = this.parsed_data;
 		// Update status
 		if (this.status === Status.OFFLINE || old_errors != msg.errors) {
 			let new_status = new ErrorAccumulator();
@@ -346,7 +430,7 @@ export class Sensor {
 
 	get state() {
 		if (this.nodes.length == 0) {
-			return NodeState.OFFLINE;
+			return -1;
 		}
 		return this.nodes[0].state;
 	}
@@ -372,7 +456,7 @@ export class CaptureGroup {
 	name: string;
 	sensors: { [name: string]: Sensor } = {};
 	cadence: number | null;
-	state: CaptureGroupState = CaptureGroupState.OFFLINE;
+	state: number = -1;
 	private _status: Status | null = null;
 
 	constructor(config: CaptureGroupConfiguration | string) {
@@ -408,7 +492,7 @@ export class CaptureGroup {
 }
 
 export class Payload {
-	state = PayloadState.OFFLINE;
+	state = -1;
 	payload_computer: Computer;
 	copilot_computer: Computer | null;
 	capture_groups: { [name: string]: CaptureGroup } = {};

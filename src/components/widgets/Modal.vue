@@ -24,6 +24,8 @@
 	z-index: var(--z-index-modal);
 	padding: 10px;
 	background-color: var(--color-background);
+	overflow-y: scroll;
+	max-height: calc(100vh - 20px);
 }
 </style>
 

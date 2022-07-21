@@ -103,7 +103,13 @@ export class Datalink {
 	}
 
 	private on_recv(data: MessageEvent<any>): void {
-		const msg: unknown = JSON.parse(data.data);
+		const msg: unknown = JSON.parse(data.data, (key, value) => {
+			if (key === 'data') {
+				return new Uint8Array(value);
+			} else {
+				return value;
+			}
+		});
 		if (this.validate_msg(msg)) {
 			this.callbacks.forEach((callback) => {
 				if (callback.filters.every((filter) => filter(msg))) {

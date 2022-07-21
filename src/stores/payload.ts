@@ -25,6 +25,9 @@ export const usePayloadStore = defineStore({
 	},
 	actions: {
 		async initialize(config?: MissionConfiguration) {
+			if (config?.uuid) {
+				localStorage.setItem('config_uuid', config.uuid);
+			}
 			if (config && this.payload?.config?.uuid !== config.uuid) {
 				this.payload = new Payload(config);
 			} else if (!config) {

@@ -12,8 +12,8 @@ const router = createRouter({
 		{
 			path: '/load_mission',
 			name: 'load',
-			// component: () => import('../views/LoadMissionView.vue')
-			component: HomeView,
+			component: () => import('../views/LoadMissionView.vue'),
+			// component: HomeView,
 		},
 		{
 			path: '/settings',
