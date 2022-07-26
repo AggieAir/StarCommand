@@ -12,12 +12,11 @@ export default defineComponent({
 	props: {
 		data: {
 			type: BarObject,
-			required: true,
 		},
 	},
 	computed: {
 		fill_style() {
-			const { data } = this;
+			const data = this.data ?? new BarObject(0, 1);
 			const good = 'var(--color-success)';
 			const warning = 'var(--color-warning)';
 			const danger = 'var(--color-error)';

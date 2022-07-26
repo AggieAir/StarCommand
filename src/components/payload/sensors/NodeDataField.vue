@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { DataField } from '@/datastructures/status';
+import type { NodeDataField as DataField } from '@/datastructures/status/node_base';
 import { defineComponent, type PropType } from 'vue';
 
 export default defineComponent({

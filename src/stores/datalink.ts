@@ -1,4 +1,4 @@
-import { Datalink } from '@/datalink';
+import { Datalink, type Message } from '@/datalink';
 import { defineStore } from 'pinia';
 import { useNotifications } from './notifications';
 import {
@@ -90,6 +90,18 @@ export const useDatalink = defineStore({
 						reject();
 					});
 			});
+		},
+		disconnect() {
+			if (this.datalink.connected) {
+				this.datalink.disconnect();
+			}
+		},
+		send(message: Message) {
+			if (!this.datalink.connected) {
+				return false;
+			}
+			this.datalink.send(message);
+			return true;
 		},
 	},
 });

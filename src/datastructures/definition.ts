@@ -1,4 +1,4 @@
-import type { Status } from './status';
+import type { Status } from './status/status_enum';
 
 export enum ConfigEntryType {
 	INTEGER,
@@ -180,6 +180,8 @@ export type CoprocessorDefinition = {
 	executable: string;
 	input_type: string;
 	config_entries: ConfigEntryDefinition[];
+	states: { [id: number]: NodeStateDefinition };
+	data_fields: NodeDataFieldDefinition[];
 	errors: NodeErrorDefinition[];
 };
 
@@ -189,6 +191,9 @@ export type CaptureTypeDefinition = {
 	description: string;
 	executable: string;
 	config_entries: ConfigEntryDefinition[];
+	states: { [id: number]: NodeStateDefinition };
+	data_fields: NodeDataFieldDefinition[];
+	errors: NodeErrorDefinition[];
 };
 
 export type AvionicsDefinition = {

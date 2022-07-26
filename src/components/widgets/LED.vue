@@ -43,7 +43,15 @@ export default defineComponent({
 			type: Boolean,
 			default: false,
 		},
+		blink: {
+			type: Boolean,
+			default: false,
+		},
 	},
+	data: () => ({
+		on: true,
+		blink_interval_id: null as number | null,
+	}),
 	computed: {
 		class_list() {
 			return {
@@ -51,13 +59,29 @@ export default defineComponent({
 				small: this.small,
 				medium: this.medium,
 				large: this.large,
-				green: this.green,
-				red: this.red,
-				yellow: this.yellow,
-				blue: this.blue,
-				white: this.white,
-				off: this.off,
+				green: this.green && this.on,
+				red: this.red && this.on,
+				yellow: this.yellow && this.on,
+				blue: this.blue && this.on,
+				white: this.white && this.on,
+				off: this.off || !this.on,
 			};
+		},
+	},
+	watch: {
+		blink: {
+			handler(new_value) {
+				if (new_value) {
+					this.on = !this.on;
+					this.blink_interval_id = setInterval(() => {
+						this.on = !this.on;
+					}, 500);
+				} else if (this.blink_interval_id !== null) {
+					clearInterval(this.blink_interval_id);
+					this.on = true;
+				}
+			},
+			immediate: true,
 		},
 	},
 });

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { type Computer, Status } from '@/datastructures/status';
+import type { Computer } from '@/datastructures/status/computer';
 import { defineComponent, type PropType } from 'vue';
 import LED from '@/components/widgets/LED.vue';
 import Tabs from '../widgets/Tabs.vue';
@@ -8,11 +8,12 @@ import ComputerOverview from './overview/ComputerOverview.vue';
 import ComputerCPU from './details/ComputerCPU.vue';
 import ComputerMemory from './details/ComputerMemory.vue';
 import { useContextMenu } from '@/stores/context';
+import { Status } from '@/datastructures/status/status_enum';
 
 export default defineComponent({
 	props: {
 		computer: {
-			type: Object as PropType<Computer>,
+			type: Object as PropType<Readonly<Computer>>,
 		},
 		role: {
 			type: String,
@@ -28,31 +29,27 @@ export default defineComponent({
 			return this.computer !== undefined;
 		},
 		online() {
-			return this.computer?.uptime !== undefined;
+			return !isNaN(this.computer?.uptime ?? NaN);
 		},
 		status() {
-			if (this.exists) {
-				return this.computer!.status;
-			} else {
-				return Status.OFFLINE;
-			}
+			return this.computer?.status_code ?? Status.OFFLINE;
 		},
 		uptime() {
 			if (this.online) {
-				return this.format_seconds(this.computer!.uptime!);
+				return this.format_seconds(this.computer!.uptime ?? 0);
 			} else {
 				return 'no data';
 			}
 		},
 		time_since_update() {
-			if (this.last_update === null) {
+			if (this.last_update === null || isNaN(this.last_update)) {
 				return 'never';
 			} else {
 				return this.format_seconds(Math.round(this.last_update));
 			}
 		},
 		show_update() {
-			if (this.last_update === null) {
+			if (this.last_update === null || isNaN(this.last_update)) {
 				return true;
 			} else {
 				// Show update if it's been more than 5 seconds since last update
@@ -61,19 +58,24 @@ export default defineComponent({
 		},
 		led_color() {
 			switch (this.status) {
-				case Status.OK:
+				case Status.ONLINE:
+				case Status.RUNNING:
 					return 'green';
 				case Status.OFFLINE:
-				case Status.NEVER_ONLINE:
 					return 'off';
 				case Status.ERROR:
-				case Status.FATAL:
 					return 'red';
-				case Status.WAITING:
+				case Status.STANDBY:
+				case Status.INITIALIZING:
 					return 'blue';
 				default:
 					return 'yellow';
 			}
+		},
+		led_blink() {
+			return (
+				this.status === Status.ERROR || this.status === Status.INITIALIZING
+			);
 		},
 	},
 	methods: {
@@ -93,7 +95,7 @@ export default defineComponent({
 			}
 		},
 		update() {
-			this.last_update = this.computer?.last_update ?? null;
+			this.last_update = this.computer?.time_since_update ?? null;
 		},
 		testContextMenu(ev: MouseEvent) {
 			const context_menu = useContextMenu();

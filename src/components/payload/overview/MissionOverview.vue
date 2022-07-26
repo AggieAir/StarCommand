@@ -1,7 +1,8 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue';
-import type { Payload } from '@/datastructures/status';
+import type { Payload } from '@/datastructures/status/payload';
 import Computer from '../Computer.vue';
+import CaptureGroupOverview from './CaptureGroupOverview.vue';
 
 export default defineComponent({
 	props: {
@@ -11,6 +12,7 @@ export default defineComponent({
 	},
 	components: {
 		Computer,
+		CaptureGroupOverview,
 	},
 });
 </script>
@@ -27,6 +29,13 @@ export default defineComponent({
 			role="Copilot"
 			class="copilot-computer"
 		/>
+		<div class="capture-groups">
+			<CaptureGroupOverview
+				v-for="[name, capture_group] in payload?.capture_groups ?? []"
+				:key="name"
+				:capture_group="capture_group"
+			/>
+		</div>
 	</div>
 </template>
 
@@ -50,6 +59,22 @@ export default defineComponent({
 
 	.copilot-computer {
 		grid-area: copilot-computer;
+	}
+
+	.capture-groups {
+		grid-area: sensors;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: none;
+		overflow-x: scroll;
+		justify-content: flex-start;
+		align-items: flex-start;
+		gap: 1rem;
+		height: 100%;
+		div {
+			height: 100%;
+			flex-grow: 1;
+		}
 	}
 }
 </style>

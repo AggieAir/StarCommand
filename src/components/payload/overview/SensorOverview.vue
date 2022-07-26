@@ -1,8 +1,9 @@
 <script lang="ts">
-import { Status, type Sensor } from '@/datastructures/status';
+import type { Sensor } from '@/datastructures/status/sensor';
 import { defineComponent, type PropType } from 'vue';
 import LED from '@/components/widgets/LED.vue';
 import NodeDataField from '../sensors/NodeDataField.vue';
+import { Status } from '@/datastructures/status/status_enum';
 
 export default defineComponent({
 	props: {
@@ -17,16 +18,16 @@ export default defineComponent({
 	},
 	computed: {
 		led_color() {
-			switch (this.sensor.status) {
-				case Status.OK:
+			switch (this.sensor.status_code) {
+				case Status.ONLINE:
+				case Status.RUNNING:
 					return 'green';
 				case Status.OFFLINE:
-				case Status.NEVER_ONLINE:
 					return 'off';
 				case Status.ERROR:
-				case Status.FATAL:
 					return 'red';
-				case Status.WAITING:
+				case Status.STANDBY:
+				case Status.INITIALIZING:
 					return 'blue';
 				default:
 					return 'yellow';
@@ -35,25 +36,37 @@ export default defineComponent({
 		sensor_node() {
 			return this.sensor.nodes[0];
 		},
+		failures() {
+			return this.sensor.nodes.reduce(
+				(acc, node) => acc + node.state.failures,
+				0
+			);
+		},
+		led_blink() {
+			return (
+				this.sensor.status_code === Status.ERROR ||
+				this.sensor.status_code === Status.INITIALIZING
+			);
+		},
 	},
 });
 </script>
 
 <template>
-	<div class="sensor-header">
-		<span>{{ sensor.name }}</span>
-		<LED small :[led_color]="true" class="sensor-led" />
-	</div>
-	<div class="sensor-overview">
-		<span class="label">Capture requests</span>
-		<span class="value">{{ sensor_node.datapoints.total }}</span>
-		<span class="label">Capture failures</span>
-		<span class="value">{{ sensor_node.datapoints.failed }}</span>
-		<NodeDataField
-			v-for="field in sensor_node.data"
-			:key="field.definition.name"
-			:data-field="field"
-		/>
+	<div>
+		<div class="sensor-header">
+			<span>{{ sensor.name }}</span>
+			<LED small :[led_color]="true" class="sensor-led" />
+		</div>
+		<div class="sensor-overview">
+			<span class="label">Failures</span>
+			<span class="value">{{ failures }}</span>
+			<NodeDataField
+				v-for="field in sensor_node.state.data"
+				:key="field.definition.name"
+				:data-field="field"
+			/>
+		</div>
 	</div>
 </template>
 
@@ -66,6 +79,8 @@ export default defineComponent({
 	margin-bottom: 0.25rem;
 	font-size: 1rem;
 	font-weight: bold;
+
+	width: 150px;
 }
 
 .sensor-overview {
@@ -74,6 +89,18 @@ export default defineComponent({
 	gap: 0.25rem;
 	overflow-y: scroll;
 	padding: 0.25rem;
-	
+	font-size: 0.8rem;
+
+	width: 150px;
+
+	.label {
+		&::after {
+			content: ':';
+		}
+	}
+
+	.value {
+		text-align: right;
+	}
 }
 </style>

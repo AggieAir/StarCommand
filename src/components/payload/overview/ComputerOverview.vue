@@ -1,12 +1,12 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { Computer } from '@/datastructures/status';
+import { defineComponent, type PropType } from 'vue';
+import type { Computer } from '@/datastructures/status/computer';
 import Meter from '@/components/widgets/Meter.vue';
 
 export default defineComponent({
 	props: {
 		computer: {
-			type: Computer,
+			type: Object as PropType<Readonly<Computer>>,
 			required: true,
 		},
 	},
@@ -19,13 +19,13 @@ export default defineComponent({
 <template>
 	<div class="computer-overview">
 		<span class="label">CPU</span>
-		<Meter :data="computer.cpu_avg" />
+		<Meter :data="computer.cpus.bar_object" />
 		<span class="label">RAM</span>
-		<Meter :data="computer.memory.bar_obj" />
+		<Meter :data="computer.memory.bar_object" />
 		<span class="label">Swap</span>
-		<Meter :data="computer.swap.bar_obj" />
+		<Meter :data="computer.swap.bar_object" />
 		<span class="label">Disk</span>
-		<Meter :data="computer.disk_avg" />
+		<Meter :data="computer.main_disk?.bar_object" />
 	</div>
 </template>
 

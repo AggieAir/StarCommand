@@ -80,6 +80,16 @@ export default defineComponent({
 				return;
 			}
 			usePayloadStore().initialize(mission);
+			this.$router.push({ name: 'home' });
+			useNotifications().show(
+				new Notification(
+					'Success',
+					'Successfully loaded mission. Waiting to hear from payload...',
+					NotificationUrgency.LOW,
+					undefined,
+					10
+				)
+			);
 		},
 	},
 	computed: {

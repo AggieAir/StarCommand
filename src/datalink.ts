@@ -1,13 +1,6 @@
 import type { Heartbeat } from './datastructures/status_input';
 import type { Optional } from './utility_types';
-
-export interface Message {
-	type: string;
-	protocol: string;
-	origin: string;
-	destination?: string;
-	payload: MessagePayload;
-}
+import type { IncomingMessage } from './datastructures/status/heartbeats';
 
 export type MessagePayload =
 	| {
@@ -15,8 +8,8 @@ export type MessagePayload =
 	  }
 	| Heartbeat;
 
-type MessageCallback = (msg: Message) => void;
-export type MessageFilter = (msg: Message) => boolean;
+type MessageCallback = (msg: IncomingMessage) => void;
+export type MessageFilter = (msg: IncomingMessage) => boolean;
 
 type FilteredCallback = {
 	filters: MessageFilter[];
@@ -92,13 +85,16 @@ export class Datalink {
 		}
 	}
 
-	private validate_msg(msg: any): msg is Message {
+	private validate_msg(msg: any): msg is IncomingMessage {
 		return (
 			typeof msg === 'object' &&
-			typeof msg.type === 'string' &&
-			typeof msg.protocol === 'string' &&
-			typeof msg.origin === 'string' &&
-			typeof msg.payload === 'object'
+			typeof msg.data === 'object' &&
+			typeof msg.data.computer === 'string' &&
+			typeof msg.data.system === 'string' &&
+			(msg.data.topic === 'heartbeat' || msg.data.topic === 'system_status') &&
+			(!msg.data.node || typeof msg.data.node === 'string') &&
+			(!msg.data.sensor || typeof msg.data.sensor === 'string') &&
+			(!msg.data.capture_group || typeof msg.data.capture_group === 'number')
 		);
 	}
 
@@ -119,7 +115,7 @@ export class Datalink {
 		}
 	}
 
-	public send(msg: Message): void {
+	public send(msg: IncomingMessage): void {
 		if (this.socket) {
 			this.socket.send(JSON.stringify(msg));
 		} else {
@@ -148,9 +144,9 @@ export class Datalink {
 		this.callbacks = this.callbacks.filter((cb) => cb.callback !== callback);
 	}
 
-	public wait_for(filters: MessageFilter[]): Promise<Message> {
+	public wait_for(filters: MessageFilter[]): Promise<IncomingMessage> {
 		return new Promise((resolve) => {
-			const callback = (msg: Message) => {
+			const callback = (msg: IncomingMessage) => {
 				this.off(callback);
 				resolve(msg);
 			};

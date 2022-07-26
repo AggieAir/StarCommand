@@ -53,8 +53,27 @@ export default defineComponent({
 		class="list-entry"
 		@click.right.stop="openContextMenu"
 		@click="$emit('open', metadata)"
+		:title="description"
 	>
 		<div class="name">{{ metadata.name }}</div>
 		<div class="description">{{ description }}</div>
 	</div>
 </template>
+
+<style scoped lang="scss">
+.list-entry {
+	cursor: pointer;
+	padding: 0.5rem;
+	text-align: left;
+
+	.name {
+		font-weight: bold;
+	}
+
+	.description {
+		font-size: 0.8rem;
+		font-weight: lighter;
+		padding-left: 1em;
+	}
+}
+</style>

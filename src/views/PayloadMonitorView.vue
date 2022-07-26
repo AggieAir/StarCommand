@@ -11,7 +11,7 @@ import { usePayloadStore } from '@/stores/payload';
 import { defineComponent } from 'vue';
 import ComputerStatus from '@/components/payload/Computer.vue';
 import MissionOverview from '../components/payload/overview/MissionOverview.vue';
-import type { Payload } from '@/datastructures/status';
+import type { Payload } from '@/datastructures/status/payload';
 import Tabs from '../components/widgets/Tabs.vue';
 
 export default defineComponent({

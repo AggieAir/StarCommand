@@ -3,6 +3,15 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
 	emits: ['click:right', 'click:middle', 'click'],
+	data: () => ({
+		hover: false,
+	}),
+	props: {
+		hasHover: {
+			type: Boolean,
+			default: false,
+		},
+	},
 });
 </script>
 
@@ -12,8 +21,11 @@ export default defineComponent({
 		@click.stop="$emit('click')"
 		@click.right.stop.prevent="$emit('click:right')"
 		@click.middle.stop="$emit('click:middle')"
+		@mouseenter="hover = true"
+		@mouseleave="hover = false"
 	>
-		<slot />
+		<slot v-if="hasHover || !hover" />
+		<slot v-else name="hover" />
 	</div>
 </template>
 
@@ -22,7 +34,7 @@ export default defineComponent({
 
 .button {
 	cursor: pointer;
-	padding: 0.25rem;
+	padding: 0.25em;
 
 	&:hover {
 		background-color: var(--color-background-soft);

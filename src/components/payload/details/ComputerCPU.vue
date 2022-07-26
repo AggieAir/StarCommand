@@ -1,17 +1,27 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { Computer } from '@/datastructures/status';
+import { defineComponent, type PropType } from 'vue';
+import type { Computer } from '@/datastructures/status/computer';
 import MeterVertical from '@/components/widgets/MeterVertical.vue';
+import { BarObject } from '@/datastructures/rendering';
 
 export default defineComponent({
 	props: {
 		computer: {
-			type: Computer,
+			type: Object as PropType<Readonly<Computer>>,
 			required: true,
 		},
 	},
 	components: {
 		MeterVertical,
+	},
+	computed: {
+		bar_objects() {
+			return this.computer.cpus.usage.map((usage) => {
+				const obj = new BarObject(0, 100);
+				obj.value = usage;
+				return obj;
+			});
+		},
 	},
 });
 </script>
@@ -20,8 +30,8 @@ export default defineComponent({
 	<div class="computer-cpu">
 		<span class="computer-cpu-header">CPU usage per core</span>
 		<div class="computer-cpu-detail">
-			<div class="cpu-meter" v-for="(cpu, idx) in computer.cpus">
-				<MeterVertical :data="cpu" />
+			<div class="cpu-meter" v-for="(_, idx) in computer.cpus.usage">
+				<MeterVertical :data="bar_objects[idx]" />
 				<span class="label">#{{ idx }}</span>
 			</div>
 		</div>
