@@ -7,7 +7,7 @@ export default defineComponent({
 		hover: false,
 	}),
 	props: {
-		hasHover: {
+		disabled: {
 			type: Boolean,
 			default: false,
 		},
@@ -17,15 +17,12 @@ export default defineComponent({
 
 <template>
 	<div
-		class="button"
-		@click.stop="$emit('click')"
-		@click.right.stop.prevent="$emit('click:right')"
-		@click.middle.stop="$emit('click:middle')"
-		@mouseenter="hover = true"
-		@mouseleave="hover = false"
+		:class="disabled ? 'button disabled' : 'button'"
+		@click.stop="disabled ? null : $emit('click')"
+		@click.right.stop.prevent="disabled ? null : $emit('click:right')"
+		@click.middle.stop="disabled ? null : $emit('click:middle')"
 	>
-		<slot v-if="hasHover || !hover" />
-		<slot v-else name="hover" />
+		<slot />
 	</div>
 </template>
 
@@ -36,13 +33,17 @@ export default defineComponent({
 	cursor: pointer;
 	padding: 0.25em;
 
-	&:hover {
+	&:hover:not(.disabled) {
 		background-color: var(--color-background-soft);
 	}
 
 	// This class will be set by the parent component if needed.
 	&.dangerous {
 		color: var(--color-error);
+	}
+
+	&.disabled {
+		cursor: not-allowed;
 	}
 }
 </style>

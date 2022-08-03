@@ -11,13 +11,15 @@ import { usePayloadStore } from '@/stores/payload';
 import { defineComponent } from 'vue';
 import ComputerStatus from '@/components/payload/Computer.vue';
 import MissionOverview from '../components/payload/overview/MissionOverview.vue';
-import type { Payload } from '@/datastructures/status/payload';
+import { type Payload, PayloadState } from '@/datastructures/status/payload';
 import Tabs from '../components/widgets/Tabs.vue';
+import Button from '../components/widgets/Button.vue';
+import Control from '../components/payload/Control.vue';
 
 export default defineComponent({
 	setup() {
 		const payloadStore = usePayloadStore();
-		return { payloadStore };
+		return { payloadStore, PayloadState };
 	},
 	async mounted() {
 		const config_uuid = localStorage.getItem('config_uuid');
@@ -68,6 +70,8 @@ export default defineComponent({
 		ComputerStatus,
 		MissionOverview,
 		Tabs,
+		Button,
+		Control,
 	},
 });
 </script>
@@ -79,16 +83,9 @@ export default defineComponent({
 				{{ payloadStore.payload.config?.name ?? 'Mission' }} Payload Monitor
 			</span>
 			<span v-else class="monitor-title">Payload Monitor</span>
-			<span class="monitor-subtitle error" v-if="!payloadStore.payload"
-				>No payload connected</span
-			>
-			<span
-				class="monitor-subtitle warning"
-				v-else-if="!payloadStore.payload.config"
-			>
-				Mission config could not be loaded, not all features will be available
+			<span class="monitor-subtitle" v-if="payload">
+				{{ payload.state_string }}
 			</span>
-			<span class="monitor-subtitle" v-else> Mission config loaded </span>
 		</div>
 		<Tabs
 			:tabs="[
@@ -108,13 +105,13 @@ export default defineComponent({
 				/>
 			</template>
 		</Tabs>
+		<Control />
 	</div>
 </template>
 
 <style lang="scss" scoped>
 .monitor-view {
 	user-select: none;
-	gap: 1rem;
 	display: flex;
 	flex-direction: column;
 	height: 100%;
@@ -144,6 +141,28 @@ export default defineComponent({
 
 			&.warning {
 				color: var(--color-warning);
+			}
+
+			&.shutdown-button {
+				&::after {
+					content: attr(data-state);
+				}
+
+				&:hover::after {
+					content: 'End Mission';
+					color: var(--color-error);
+				}
+			}
+
+			&.start-button {
+				&::after {
+					content: attr(data-state);
+				}
+
+				&:hover::after {
+					content: 'Start Mission';
+					color: var(--color-success);
+				}
 			}
 		}
 	}

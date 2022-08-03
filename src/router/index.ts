@@ -16,6 +16,11 @@ const router = createRouter({
 			// component: HomeView,
 		},
 		{
+			path: '/payload',
+			name: 'payload-config',
+			component: () => import('../views/PayloadConfigView.vue'),
+		},
+		{
 			path: '/settings',
 			name: 'settings',
 			// component: () => import('../views/SettingsView.vue')

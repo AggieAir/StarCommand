@@ -40,7 +40,7 @@ export interface ComputerStatus {
 	uptime: number;
 }
 
-export interface IncomingMessage {
+export interface IncomingStatusMessage {
 	/**
 	 * The data contained in the message.
 	 */
@@ -74,41 +74,45 @@ export interface IncomingMessage {
 	 * For computer status, this will be 'system_status'.
 	 */
 	topic: 'heartbeat' | 'system_status';
+	/**
+	 * Differentiates this messsage from other incoming messages.
+	 */
+	type: 'status';
 }
 
 export type ProcessingNodeHeartbeatMsg = Required<
-	IncomingMessage & {
+	IncomingStatusMessage & {
 		data: Heartbeat;
 		topic: 'heartbeat';
 	}
 >;
 export type CaptureGroupHeartbeatMsg = Required<
-	Omit<IncomingMessage, 'node' | 'sensor'> & {
+	Omit<IncomingStatusMessage, 'node' | 'sensor'> & {
 		data: Heartbeat;
 		topic: 'heartbeat';
 	}
 >;
 export type CoprocessorHeartbeatMsg = Required<
-	Omit<IncomingMessage, 'sensor' | 'capture_group'> & {
+	Omit<IncomingStatusMessage, 'sensor' | 'capture_group'> & {
 		data: Heartbeat;
 		topic: 'heartbeat';
 	}
 >;
 export type PayloadHeartbeatMsg = Required<
-	Omit<IncomingMessage, 'node' | 'sensor' | 'capture_group'> & {
+	Omit<IncomingStatusMessage, 'node' | 'sensor' | 'capture_group'> & {
 		data: Heartbeat;
 		topic: 'heartbeat';
 	}
 >;
 export type ComputerStatusMsg = Required<
-	Omit<IncomingMessage, 'node' | 'sensor' | 'capture_group'> & {
+	Omit<IncomingStatusMessage, 'node' | 'sensor' | 'capture_group'> & {
 		data: ComputerStatus;
 		topic: 'system_status';
 	}
 >;
 
 export function message_is_node_heartbeat(
-	message: IncomingMessage
+	message: IncomingStatusMessage
 ): message is ProcessingNodeHeartbeatMsg {
 	return (
 		message.node !== undefined &&
@@ -119,7 +123,7 @@ export function message_is_node_heartbeat(
 }
 
 export function message_is_capture_group_heartbeat(
-	message: IncomingMessage
+	message: IncomingStatusMessage
 ): message is CaptureGroupHeartbeatMsg {
 	return (
 		message.node === undefined &&
@@ -130,7 +134,7 @@ export function message_is_capture_group_heartbeat(
 }
 
 export function message_is_coprocessor_heartbeat(
-	message: IncomingMessage
+	message: IncomingStatusMessage
 ): message is CoprocessorHeartbeatMsg {
 	return (
 		message.node !== undefined &&
@@ -141,7 +145,7 @@ export function message_is_coprocessor_heartbeat(
 }
 
 export function message_is_payload_heartbeat(
-	message: IncomingMessage
+	message: IncomingStatusMessage
 ): message is PayloadHeartbeatMsg {
 	return (
 		message.node === undefined &&
@@ -152,7 +156,7 @@ export function message_is_payload_heartbeat(
 }
 
 export function message_is_computer_status(
-	message: IncomingMessage
+	message: IncomingStatusMessage
 ): message is ComputerStatusMsg {
 	return (
 		message.node === undefined &&

@@ -129,7 +129,7 @@ export abstract class StardosNode<
 	private _timestamp: number | null = null;
 
 	private _state: NodeState = {
-		state: 0,
+		state: -1,
 		warnings: new Array(24).fill(false),
 		requests: 0,
 		failures: 0,

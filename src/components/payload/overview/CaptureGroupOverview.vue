@@ -29,14 +29,16 @@ export default defineComponent({
 				return name;
 			}
 			console.warn(`Undefined state: ${state}`);
-			if (state < 0) {
+			if (state < -1) {
 				return 'Error'; // < 0
-			} else if (state < 10) {
+			} else if (state === -1) {
+				return 'Offline'; // -1
+			} else if (state >= 0 || state < 10) {
 				return 'Initializing'; // 0-9
 			} else if (state < 12) {
 				return 'Running'; // 10, 11
 			} else {
-				return 'Standby'; // 12-127
+				return 'Standby'; // 12-126
 			}
 		},
 		error() {
@@ -62,21 +64,10 @@ export default defineComponent({
 			<span class="name">
 				{{ capture_group.name }}
 			</span>
-			<div class="buttons">
-				<Button
-					v-if="standby"
-					class="activate"
-					:content="state"
-					@click="activate"
-				/>
-				<Button
-					v-if="active"
-					class="deactivate"
-					:content="state"
-					@click="deactivate"
-				/>
-				<div v-if="error" class="error">{{ state }}</div>
-				<div v-if="initializing" class="initializing">{{ state }}</div>
+			<div class="state">
+				<div :class="{ standby, active, error, initializing }">
+					{{ state }}
+				</div>
 			</div>
 			<span class="requests">
 				Capture attempts:
@@ -92,6 +83,14 @@ export default defineComponent({
 				:key="name"
 				:sensor="sensor"
 			/>
+			<div class="control">
+				<Button class="activate" @click="activate" :disabled="!standby">
+					Activate
+				</Button>
+				<Button class="deactivate" @click="deactivate" :disabled="!active">
+					Deactivate
+				</Button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -121,30 +120,17 @@ export default defineComponent({
 			}
 		}
 
-		.buttons {
+		.state {
 			font-size: 0.8rem;
 			text-align: center;
 
-			.activate {
-				&::after {
-					content: attr(content);
-					color: var(--color-cyan);
-				}
-
-				&:hover::after {
-					content: 'Activate';
-					color: var(--color-success);
-				}
+			.standby {
+				color: var(--color-cyan);
+				padding: 0.25em;
 			}
-			.deactivate {
-				&::after {
-					content: attr(content);
-					color: var(--color-success);
-				}
-				&:hover::after {
-					content: 'Deactivate';
-					color: var(--color-error);
-				}
+			.active {
+				color: var(--color-success);
+				padding: 0.25em;
 			}
 
 			.error {
@@ -170,9 +156,36 @@ export default defineComponent({
 		margin-top: 1rem;
 		gap: 1rem;
 		padding-left: 1rem;
-
+		height: calc(100% - 2.75rem);
 		.sensor {
 			height: 100%;
+		}
+
+		.control {
+			text-align: center;
+			margin-left: auto;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: flex-end;
+			justify-self: flex-end;
+
+			.button {
+				font-size: 0.9rem;
+				width: 6rem;
+
+				&.activate {
+					color: var(--color-green);
+				}
+
+				&.deactivate {
+					color: var(--color-red);
+				}
+
+				&.disabled {
+					color: var(--color-border);
+				}
+			}
 		}
 	}
 

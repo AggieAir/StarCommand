@@ -102,6 +102,9 @@ export default defineComponent({
 		todays_missions() {
 			return this.missions.filter((mission) => mission.date === this.today());
 		},
+		undated_missions() {
+			return this.missions.filter((mission) => mission.date === 'unknown');
+		},
 	},
 	components: { MissionList },
 });
@@ -114,6 +117,9 @@ export default defineComponent({
 		<template v-if="loaded">
 			<MissionList :missions="todays_missions" start-open @open="load">
 				Today's Missions
+			</MissionList>
+			<MissionList :missions="undated_missions" @open="load">
+				Undated Missions
 			</MissionList>
 			<MissionList :missions="future_missions" @open="load">
 				Future Missions

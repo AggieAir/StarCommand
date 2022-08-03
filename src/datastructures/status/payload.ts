@@ -1,3 +1,4 @@
+import { useDatalink } from '@/stores/datalink';
 import type { MissionConfiguration } from '../configuration';
 import { CaptureGroup } from './capture_group';
 import { Computer } from './computer';
@@ -7,7 +8,7 @@ import {
 	message_is_node_heartbeat,
 	message_is_payload_heartbeat,
 	type Heartbeat,
-	type IncomingMessage,
+	type IncomingStatusMessage,
 } from './heartbeats';
 
 /**
@@ -110,6 +111,39 @@ export class Payload {
 		return this._config;
 	}
 
+	public get state_string(): string {
+		switch (this._state) {
+			case PayloadState.CONTROL_INIT:
+				return 'Payload software initializing...';
+			case PayloadState.CONFIG_INIT:
+				return 'Parsing mission configuration...';
+			case PayloadState.SENSOR_INIT:
+				return 'Initializing mission...';
+			case PayloadState.SENSOR_SHUTDOWN:
+				return 'Waiting for mission shutdown...';
+			case PayloadState.CONTROL_SHUTDOWN:
+				return 'Payload shutting down...';
+			case PayloadState.CAPTURING:
+				return 'Collecting data';
+			case PayloadState.WAITING_FOR_CONFIG:
+				return 'Safe to power off';
+			case PayloadState.READY_FOR_MISSION_START:
+				return 'Safe to power off';
+			case PayloadState.STANDBY:
+				return 'Standby';
+			case PayloadState.ERROR_NODE_FAILURE:
+				return 'Node failure';
+			case PayloadState.ERROR_SOFTWARE_INCOMPATIBLE:
+				return 'Incompatible software in mission configuration';
+			case PayloadState.ERROR_DISK_SPACE:
+				return 'Disk is full, cannot store data';
+			case PayloadState.ERROR_MEMORY:
+				return 'Memory is full, cannot operate';
+			default:
+				return 'Unknown state';
+		}
+	}
+
 	public constructor(private _config?: MissionConfiguration) {
 		// With lack of config, assume both computers exist.
 		if (!_config) {
@@ -130,7 +164,7 @@ export class Payload {
 		);
 	}
 
-	public handle_message(message: IncomingMessage): void {
+	public handle_message(message: IncomingStatusMessage): void {
 		if (message_is_capture_group_heartbeat(message)) {
 			this._capture_groups
 				.get(message.capture_group)
@@ -159,5 +193,41 @@ export class Payload {
 
 	private parse_heartbeat(message: Heartbeat): void {
 		this._state = message.state;
+	}
+
+	public start_mission(): void {
+		useDatalink().send({
+			type: 'control',
+			target: `start-mission`,
+			protocol: 'mavlink',
+			data: '',
+		});
+	}
+
+	public end_mission(): void {
+		useDatalink().send({
+			type: 'control',
+			target: `end-mission`,
+			protocol: 'mavlink',
+			data: '',
+		});
+	}
+
+	public activate(capture_group: string): void {
+		useDatalink().send({
+			type: 'control',
+			target: `${this.payload_computer.name}/${capture_group}/activate`,
+			protocol: 'mavlink',
+			data: capture_group,
+		});
+	}
+
+	public deactivate(capture_group: string): void {
+		useDatalink().send({
+			type: 'control',
+			target: `${this.payload_computer.name}/${capture_group}/deactivate`,
+			protocol: 'mavlink',
+			data: capture_group,
+		});
 	}
 }

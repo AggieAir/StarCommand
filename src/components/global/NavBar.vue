@@ -22,6 +22,10 @@ export default defineComponent({
 				text: 'Payload Status',
 			},
 			{
+				target: { name: 'payload-config' },
+				text: 'Payload Settings',
+			},
+			{
 				target: { name: 'load' },
 				text: 'Load Config',
 			},

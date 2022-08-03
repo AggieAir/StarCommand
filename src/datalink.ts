@@ -1,12 +1,28 @@
 import type { Heartbeat } from './datastructures/status_input';
 import type { Optional } from './utility_types';
-import type { IncomingMessage } from './datastructures/status/heartbeats';
+import type { IncomingStatusMessage } from './datastructures/status/heartbeats';
+import type {
+	ControlMessage,
+	ParameterList,
+	ParameterMessage,
+	ParameterRequest,
+	ParameterResponse,
+} from './datastructures/status/control';
 
 export type MessagePayload =
 	| {
 			[key: string]: any;
 	  }
 	| Heartbeat;
+
+export type IncomingMessage =
+	| IncomingStatusMessage
+	| ParameterResponse
+	| ParameterList;
+export type OutgoingMessage =
+	| ParameterMessage
+	| ControlMessage
+	| ParameterRequest;
 
 type MessageCallback = (msg: IncomingMessage) => void;
 export type MessageFilter = (msg: IncomingMessage) => boolean;
@@ -85,17 +101,22 @@ export class Datalink {
 		}
 	}
 
+	// private validate_msg(msg: any): msg is IncomingStatusMessage {
+	// 	return (
+	// 		typeof msg === 'object' &&
+	// 		typeof msg.data === 'object' &&
+	// 		typeof msg.data.computer === 'string' &&
+	// 		typeof msg.data.system === 'string' &&
+	// 		(msg.data.topic === 'heartbeat' || msg.data.topic === 'system_status') &&
+	// 		(!msg.data.node || typeof msg.data.node === 'string') &&
+	// 		(!msg.data.sensor || typeof msg.data.sensor === 'string') &&
+	// 		(!msg.data.capture_group || typeof msg.data.capture_group === 'number')
+	// 	);
+	// }
+
 	private validate_msg(msg: any): msg is IncomingMessage {
-		return (
-			typeof msg === 'object' &&
-			typeof msg.data === 'object' &&
-			typeof msg.data.computer === 'string' &&
-			typeof msg.data.system === 'string' &&
-			(msg.data.topic === 'heartbeat' || msg.data.topic === 'system_status') &&
-			(!msg.data.node || typeof msg.data.node === 'string') &&
-			(!msg.data.sensor || typeof msg.data.sensor === 'string') &&
-			(!msg.data.capture_group || typeof msg.data.capture_group === 'number')
-		);
+		// TODO: implement
+		return true;
 	}
 
 	private on_recv(data: MessageEvent<any>): void {
@@ -115,7 +136,11 @@ export class Datalink {
 		}
 	}
 
-	public send(msg: IncomingMessage): void {
+	/**
+	 * Sends a message to the server.
+	 * @param msg Message to send
+	 */
+	public send(msg: OutgoingMessage): void {
 		if (this.socket) {
 			this.socket.send(JSON.stringify(msg));
 		} else {
@@ -123,6 +148,11 @@ export class Datalink {
 		}
 	}
 
+	/**
+	 * Registers a message callback.
+	 * @param filters Array of filters to apply to the callback
+	 * @param callback Function to call when a message matches the filters
+	 */
 	public on(filters: MessageFilter[], callback: MessageCallback): void {
 		this.callbacks.push({
 			filters,
@@ -130,27 +160,55 @@ export class Datalink {
 		});
 	}
 
+	/**
+	 * Register a function to be called when a connection is closed.
+	 * @param callback Function to call when the connection is closed
+	 */
 	public on_close(callback: () => void): void {
 		this.on_close_callbacks.push(callback);
 	}
 
+	/**
+	 * Unregisters a close callback.
+	 * @param callback Function to unregister
+	 */
 	public off_close(callback: () => void): void {
 		this.on_close_callbacks = this.on_close_callbacks.filter(
 			(c) => c !== callback
 		);
 	}
 
+	/**
+	 * Unregisters a message callback.
+	 * @param callback Function to unregister
+	 */
 	public off(callback: MessageCallback): void {
 		this.callbacks = this.callbacks.filter((cb) => cb.callback !== callback);
 	}
 
-	public wait_for(filters: MessageFilter[]): Promise<IncomingMessage> {
-		return new Promise((resolve) => {
+	/**
+	 * Waits for a message to be received and returns it.
+	 * @param filters Filters to match against, as an array of type predicates.
+	 * @param timeout Optional timeout in milliseconds.
+	 * @returns A promise that resolves when a message matching the filters is received.
+	 */
+	public wait_for<T extends IncomingMessage>(
+		filters: ((message: IncomingMessage) => message is T)[],
+		timeout?: number
+	): Promise<T> {
+		return new Promise((resolve, reject) => {
 			const callback = (msg: IncomingMessage) => {
 				this.off(callback);
+				// @ts-ignore: This callback is only called if the message passes the filters, so it is safe to cast
 				resolve(msg);
 			};
 			this.on(filters, callback);
+			if (timeout) {
+				setTimeout(() => {
+					this.off(callback);
+					reject('timed out');
+				}, timeout);
+			}
 		});
 	}
 }

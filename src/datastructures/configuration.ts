@@ -120,9 +120,9 @@ export function validate_mission(obj: any): obj is MissionConfiguration {
 }
 
 function check_constraint_value(
-	value: string | number | boolean,
+	value: string | number | boolean | undefined,
 	constraint: ConfigEntryConstraint,
-	compare_against: string | number | boolean
+	compare_against: string | number | boolean | undefined
 ): boolean {
 	if (typeof value === 'string') {
 		switch (constraint.relation) {
@@ -137,6 +137,9 @@ function check_constraint_value(
 				return false;
 		}
 	} else if (typeof value === 'number') {
+		if (compare_against === undefined) {
+			return false;
+		}
 		switch (constraint.relation) {
 			case ConstraintRelation.EQUALS:
 				return value === compare_against;
@@ -168,10 +171,10 @@ function check_constraint_value(
 }
 
 export function check_constraint(
-	value: string | number | boolean,
+	value: string | number | boolean | undefined,
 	constraint: ConfigEntryConstraint,
-	mission: MissionConfiguration,
-	config: ConfigEntries<string | number | boolean>
+	mission?: MissionConfiguration,
+	config?: ConfigEntries<string | number | boolean | undefined>
 ): boolean {
 	let result: boolean;
 	switch (constraint.type) {
@@ -179,6 +182,12 @@ export function check_constraint(
 			result = check_constraint_value(value, constraint, constraint.value);
 			break;
 		case ConstraintType.LINKED:
+			if (!config) {
+				console.error(
+					'Error: linked constraint without config object; cannot check constraint.'
+				);
+				return false;
+			}
 			result = check_constraint_value(
 				value,
 				constraint,
@@ -186,11 +195,17 @@ export function check_constraint(
 			);
 			break;
 		case ConstraintType.CONFIG_LINKED:
+			if (!mission) {
+				console.error(
+					'Error: config linked constraint without mission object; cannot check constraint.'
+				);
+				return false;
+			}
 			result = check_constraint_value(
 				value,
 				constraint,
 				// @ts-ignore: If this comes back as undefined, that's fine. This data isn't saved anyways.
-				mission[constraint.target]
+				mission[constraint.target] as string | number | boolean
 			);
 	}
 
