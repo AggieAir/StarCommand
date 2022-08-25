@@ -45,15 +45,16 @@ export default defineComponent({
 			if (this.last_update === null || isNaN(this.last_update)) {
 				return 'never';
 			} else {
-				return this.format_seconds(Math.round(this.last_update));
+				return this.format_seconds(Math.round(this.last_update / 1000 - 0.5));
 			}
 		},
 		show_update() {
 			if (this.last_update === null || isNaN(this.last_update)) {
+				console.log('no update');
 				return true;
 			} else {
 				// Show update if it's been more than 5 seconds since last update
-				return Date.now() - this.last_update > 5000;
+				return this.last_update > 5000;
 			}
 		},
 		led_color() {
@@ -141,7 +142,7 @@ export default defineComponent({
 	<div
 		class="computer"
 		:class="{
-			online: computer?.online ?? false,
+			online: online ?? false,
 			connected: computer === undefined,
 		}"
 	>
@@ -151,7 +152,7 @@ export default defineComponent({
 		</div>
 		<div class="body" @click.right.stop.prevent="testContextMenu">
 			<Tabs
-				v-if="computer?.online"
+				v-if="online"
 				:bottom="true"
 				:tabs="[
 					{ name: 'overview', text: 'Overview' },

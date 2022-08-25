@@ -16,22 +16,32 @@ export default defineComponent({
 	},
 	computed: {
 		server_address(): string {
-			if (this.datalink.address === null) {
+			if (this.datalink.telemetry_address === null) {
 				return 'not configured';
 			}
-			return `${this.datalink.address}:${this.datalink.port}`;
+			return `${this.datalink.telemetry_address}:${this.datalink.telemetry_port}`;
 		},
-		connected(): boolean {
-			return this.datalink.datalink.connected;
+		telem_connected(): boolean {
+			return this.datalink.telemetry_connected;
+		},
+		config_connected(): boolean {
+			return this.datalink.config_connected;
 		},
 		link_status(): string {
-			return this.connected ? 'Online' : 'Offline';
+			if (this.telem_connected && this.config_connected) {
+				return 'connected';
+			}
+			if (this.telem_connected || this.config_connected) {
+				return 'connected';
+			}
+			return 'disconnected';
 		},
 		class_list(): { [key: string]: boolean } {
 			return {
 				'status-bar': true,
-				online: this.connected,
-				offline: !this.connected,
+				// online: this.telem_connected && this.config_connected,
+				online: this.telem_connected || this.config_connected,
+				offline: !this.telem_connected && !this.config_connected,
 			};
 		},
 	},

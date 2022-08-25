@@ -46,9 +46,11 @@ export default defineComponent({
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-end;
+	clip-path: inset(0 0 0 0 round 0.5rem);
 
 	.fill {
-		border-radius: calc(0.5rem - 1px);
+		// border-radius: calc(0.5rem - 1px);
+		padding: 1px;
 		width: 100%;
 	}
 }

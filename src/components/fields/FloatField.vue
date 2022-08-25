@@ -7,6 +7,7 @@ import {
 import type { ConfigEntryDefinition } from '@/datastructures/definition';
 import { useConfigStore } from '@/stores/config';
 import { defineComponent, type PropType } from 'vue';
+import FieldInput from './FieldInput.vue';
 
 export default defineComponent({
 	props: {
@@ -33,7 +34,6 @@ export default defineComponent({
 			valid: boolean;
 		} {
 			this.error = null;
-
 			if (this.definition.required && value === '') {
 				this.error = 'This field is required.';
 				return { value: undefined, valid: false };
@@ -84,6 +84,7 @@ export default defineComponent({
 			immediate: true,
 		},
 	},
+	components: { FieldInput },
 });
 </script>
 
@@ -91,7 +92,7 @@ export default defineComponent({
 	<div class="floating-point-field" @click.stop :title="definition.description">
 		<span class="label">{{ definition.human_name }}</span>
 		<span class="required" v-if="definition.required">*</span>
-		<input
+		<FieldInput
 			type="text"
 			@change="on_update"
 			:title="error ?? undefined"
@@ -112,26 +113,6 @@ export default defineComponent({
 	.label {
 		flex: 1 0 auto;
 		text-align: left;
-	}
-
-	input {
-		background-color: var(--color-background-soft);
-		border: none;
-		color: var(--color-text);
-		text-align: right;
-		appearance: textfield;
-
-		&:hover {
-			background-color: var(--color-background-mute);
-		}
-
-		&.error:not(:focus) {
-			background-color: var(--color-error);
-		}
-
-		&.error:focus {
-			color: var(--color-error);
-		}
 	}
 
 	.required {

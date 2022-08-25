@@ -46,10 +46,11 @@ export default defineComponent({
 	background-color: var(--color-background-soft);
 	border: 1px solid var(--color-background-soft);
 	border-radius: 0.5rem;
+	clip-path: inset(1px round 0.5rem);
 }
 
 .fill {
 	height: 100%;
-	border-radius: calc(0.5rem - 1px);
+	// border-radius: calc(0.5rem - 1px);
 }
 </style>

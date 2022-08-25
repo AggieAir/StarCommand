@@ -296,6 +296,16 @@ export default class Database {
 				uuid: data.uuid!,
 			};
 			await this.save(Table.MissionMetadata, metadata);
+			data.capture_groups = data.capture_groups.map((cg) => {
+				if ('type' in cg) {
+					// @ts-ignore this is a conversion from the old format
+					cg.definition = cg.type;
+					// @ts-ignore this is a conversion from the old format
+					delete cg.type;
+				}
+				return cg;
+			});
+			return this.save(Table.MissionConfiguration, data);
 		}
 		return this.save(object.type, object.content);
 	}

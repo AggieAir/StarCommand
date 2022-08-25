@@ -166,28 +166,26 @@ export class Payload {
 
 	public handle_message(message: IncomingStatusMessage): void {
 		if (message_is_capture_group_heartbeat(message)) {
+			console.log('Received capture group heartbeat');
 			this._capture_groups
 				.get(message.capture_group)
-				?.parse_heartbeat(message.data);
+				?.parse_heartbeat(message.payload);
 		} else if (message_is_node_heartbeat(message)) {
 			this._capture_groups
 				.get(message.capture_group)
 				?.sensors.get(message.sensor)
 				?.nodes.find((node) => node.name === message.node)
-				?.parse_heartbeat(message.data);
+				?.parse_heartbeat(message.payload);
 		} else if (message_is_computer_status(message)) {
-			if (
-				message.computer === this.payload_computer.name ||
-				message.computer.includes('APL')
-			) {
-				this._payload_computer.parse_heartbeat(message.data);
+			if (message.computer.includes('copilot')) {
+				this._copilot_computer?.parse_heartbeat(message.payload);
 			} else {
-				this._copilot_computer?.parse_heartbeat(message.data);
+				this._payload_computer.parse_heartbeat(message.payload);
 			}
 		} else if (message_is_payload_heartbeat(message)) {
-			this.parse_heartbeat(message.data);
+			this.parse_heartbeat(message.payload);
 		} else {
-			console.error(`Unknown message type: ${message}`);
+			console.error(`Unknown message type: ${JSON.stringify(message)}`);
 		}
 	}
 
@@ -196,38 +194,38 @@ export class Payload {
 	}
 
 	public start_mission(): void {
-		useDatalink().send({
+		useDatalink().send_command({
 			type: 'control',
-			target: `start-mission`,
+			target: '/start_mission',
 			protocol: 'mavlink',
-			data: '',
+			payload: '',
 		});
 	}
 
 	public end_mission(): void {
-		useDatalink().send({
+		useDatalink().send_command({
 			type: 'control',
-			target: `end-mission`,
+			target: `/end_mission`,
 			protocol: 'mavlink',
-			data: '',
+			payload: '',
 		});
 	}
 
 	public activate(capture_group: string): void {
-		useDatalink().send({
+		useDatalink().send_command({
 			type: 'control',
-			target: `${this.payload_computer.name}/${capture_group}/activate`,
+			target: `/${this.payload_computer.name}/${capture_group}/activate`,
 			protocol: 'mavlink',
-			data: capture_group,
+			payload: '',
 		});
 	}
 
 	public deactivate(capture_group: string): void {
-		useDatalink().send({
+		useDatalink().send_command({
 			type: 'control',
-			target: `${this.payload_computer.name}/${capture_group}/deactivate`,
+			target: `/${this.payload_computer.name}/${capture_group}/deactivate`,
 			protocol: 'mavlink',
-			data: capture_group,
+			payload: '',
 		});
 	}
 }

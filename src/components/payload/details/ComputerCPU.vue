@@ -17,7 +17,9 @@ export default defineComponent({
 	computed: {
 		bar_objects() {
 			return this.computer.cpus.usage.map((usage) => {
-				const obj = new BarObject(0, 100);
+				const obj = new BarObject(0, 255);
+				obj.low = 127;
+				obj.high = 200;
 				obj.value = usage;
 				return obj;
 			});

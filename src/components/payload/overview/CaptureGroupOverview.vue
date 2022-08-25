@@ -3,6 +3,8 @@ import type { CaptureGroup } from '@/datastructures/status/capture_group';
 import { defineComponent, type PropType } from 'vue';
 import SensorOverview from './SensorOverview.vue';
 import Button from '../../widgets/Button.vue';
+import { Status } from '@/datastructures/status/status_enum';
+import { usePayloadStore } from '@/stores/payload';
 
 export default defineComponent({
 	props: {
@@ -29,17 +31,32 @@ export default defineComponent({
 				return name;
 			}
 			console.warn(`Undefined state: ${state}`);
-			if (state < -1) {
-				return 'Error'; // < 0
-			} else if (state === -1) {
-				return 'Offline'; // -1
-			} else if (state >= 0 || state < 10) {
-				return 'Initializing'; // 0-9
-			} else if (state < 12) {
-				return 'Running'; // 10, 11
-			} else {
-				return 'Standby'; // 12-126
+			if (state < 0) {
+				return 'Error';
 			}
+			if (state < 10) {
+				return 'Initializing';
+			}
+			if (state < 12) {
+				return 'Running';
+			}
+			return 'Standby';
+			// switch (this.capture_group.status_code) {
+			// 	case Status.ERROR:
+			// 		return 'Error';
+			// 	case Status.ONLINE:
+			// 		return 'Online';
+			// 	case Status.OFFLINE:
+			// 		return 'Offline';
+			// 	case Status.RUNNING:
+			// 		return 'Running';
+			// 	case Status.STANDBY:
+			// 		return 'Standby';
+			// 	case Status.INITIALIZING:
+			// 		return 'Initializing';
+			// 	case Status.WARNING:
+			// 		return 'Warning';
+			// }
 		},
 		error() {
 			return this.capture_group.state.state < 0;
@@ -52,8 +69,12 @@ export default defineComponent({
 		},
 	},
 	methods: {
-		activate() {},
-		deactivate() {},
+		activate() {
+			usePayloadStore().payload?.activate(this.capture_group.name);
+		},
+		deactivate() {
+			usePayloadStore().payload?.deactivate(this.capture_group.name);
+		},
 	},
 });
 </script>

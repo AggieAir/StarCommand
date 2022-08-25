@@ -79,7 +79,7 @@ export default defineComponent({
 				);
 				return;
 			}
-			usePayloadStore().initialize(mission);
+			usePayloadStore().initialize(mission, true);
 			this.$router.push({ name: 'home' });
 			useNotifications().show(
 				new Notification(

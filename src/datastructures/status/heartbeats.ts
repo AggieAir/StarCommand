@@ -8,9 +8,9 @@ export interface Heartbeat {
 	 */
 	state: number;
 	/**
-	 * A 24-bit bitmask representing the node's warnings, extracted into an array of booleans.
+	 * A 24-bit bitmask representing the node's warnings, as 3 uint8_t values.
 	 */
-	warnings: boolean[];
+	warnings: number[];
 	/**
 	 * A 16-bit integer representing the number of requests the node has received.
 	 * This is incremented each time a request is sent to the node. In some extreme
@@ -36,7 +36,7 @@ export interface ComputerStatus {
 	memory: number[];
 	swap: number[];
 	mounts: string[];
-	disks: number[][];
+	disks: number[];
 	uptime: number;
 }
 
@@ -44,7 +44,7 @@ export interface IncomingStatusMessage {
 	/**
 	 * The data contained in the message.
 	 */
-	data: Heartbeat | ComputerStatus;
+	payload: Heartbeat | ComputerStatus;
 	/**
 	 * The processing node that sent the message, extracted from the ROS topic.
 	 * If the node is not a processing node or coprocessor, this will be null.
@@ -82,31 +82,31 @@ export interface IncomingStatusMessage {
 
 export type ProcessingNodeHeartbeatMsg = Required<
 	IncomingStatusMessage & {
-		data: Heartbeat;
+		payload: Heartbeat;
 		topic: 'heartbeat';
 	}
 >;
 export type CaptureGroupHeartbeatMsg = Required<
 	Omit<IncomingStatusMessage, 'node' | 'sensor'> & {
-		data: Heartbeat;
+		payload: Heartbeat;
 		topic: 'heartbeat';
 	}
 >;
 export type CoprocessorHeartbeatMsg = Required<
 	Omit<IncomingStatusMessage, 'sensor' | 'capture_group'> & {
-		data: Heartbeat;
+		payload: Heartbeat;
 		topic: 'heartbeat';
 	}
 >;
 export type PayloadHeartbeatMsg = Required<
 	Omit<IncomingStatusMessage, 'node' | 'sensor' | 'capture_group'> & {
-		data: Heartbeat;
+		payload: Heartbeat;
 		topic: 'heartbeat';
 	}
 >;
 export type ComputerStatusMsg = Required<
 	Omit<IncomingStatusMessage, 'node' | 'sensor' | 'capture_group'> & {
-		data: ComputerStatus;
+		payload: ComputerStatus;
 		topic: 'system_status';
 	}
 >;
@@ -115,9 +115,9 @@ export function message_is_node_heartbeat(
 	message: IncomingStatusMessage
 ): message is ProcessingNodeHeartbeatMsg {
 	return (
-		message.node !== undefined &&
-		message.sensor === undefined &&
-		message.capture_group === undefined &&
+		message.node !== null &&
+		message.sensor !== null &&
+		message.capture_group !== null &&
 		message.topic === 'heartbeat'
 	);
 }
@@ -126,9 +126,9 @@ export function message_is_capture_group_heartbeat(
 	message: IncomingStatusMessage
 ): message is CaptureGroupHeartbeatMsg {
 	return (
-		message.node === undefined &&
-		message.sensor === undefined &&
-		message.capture_group !== undefined &&
+		message.node === null &&
+		message.sensor === null &&
+		message.capture_group !== null &&
 		message.topic === 'heartbeat'
 	);
 }
@@ -137,9 +137,9 @@ export function message_is_coprocessor_heartbeat(
 	message: IncomingStatusMessage
 ): message is CoprocessorHeartbeatMsg {
 	return (
-		message.node !== undefined &&
-		message.sensor === undefined &&
-		message.capture_group === undefined &&
+		message.node !== null &&
+		message.sensor === null &&
+		message.capture_group === null &&
 		message.topic === 'heartbeat'
 	);
 }
@@ -148,9 +148,9 @@ export function message_is_payload_heartbeat(
 	message: IncomingStatusMessage
 ): message is PayloadHeartbeatMsg {
 	return (
-		message.node === undefined &&
-		message.sensor === undefined &&
-		message.capture_group === undefined &&
+		message.node === null &&
+		message.sensor === null &&
+		message.capture_group === null &&
 		message.topic === 'heartbeat'
 	);
 }
@@ -159,9 +159,9 @@ export function message_is_computer_status(
 	message: IncomingStatusMessage
 ): message is ComputerStatusMsg {
 	return (
-		message.node === undefined &&
-		message.sensor === undefined &&
-		message.capture_group === undefined &&
+		message.node === null &&
+		message.sensor === null &&
+		message.capture_group === null &&
 		message.topic === 'system_status'
 	);
 }

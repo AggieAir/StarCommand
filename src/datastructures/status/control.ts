@@ -5,7 +5,7 @@ export interface ControlMessage {
 	 * The data contained in the message. This will be placed in the ROS message's
 	 * options field.
 	 */
-	data: string;
+	payload: string;
 	/**
 	 * The fully-qualified ROS topic to publish the message to.
 	 */

@@ -316,12 +316,21 @@ export abstract class StardosNode<
 
 	public parse_heartbeat(heartbeat: Heartbeat) {
 		this._state.state = heartbeat.state;
-		this._state.warnings = [...heartbeat.warnings];
+		const warning_num = heartbeat.warnings.reduce((acc, x, idx) => {
+			return (acc + x) << (idx * 8);
+		}, 0);
+		this._state.warnings = (() => {
+			const bits = ([] as boolean[])
+				.fill(false, 0, 32)
+				.map((_, idx) => (warning_num & (1 << idx)) > 0);
+			return bits;
+		})();
 		this._state.requests = heartbeat.requests;
 		this._state.failures = heartbeat.failures;
 		this._state.data = this.parse_data(heartbeat.data);
 		this.update_status_code();
 		this._online = true;
+		this._timestamp = Date.now();
 	}
 
 	protected parse_data(data: ArrayBuffer): NodeDataField[] {

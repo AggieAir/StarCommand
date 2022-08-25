@@ -21,8 +21,8 @@ export default defineComponent({
 			const used = this.computer.memory.used;
 
 			return {
-				max: Math.round((max / Math.pow(1024, 2)) * 100) / 100,
-				value: Math.round((used / Math.pow(1024, 2)) * 100) / 100,
+				max: Math.round(max * 100) / 100,
+				value: Math.round(used * 100) / 100,
 				unit: target_unit,
 			};
 		},
@@ -33,8 +33,8 @@ export default defineComponent({
 			const used = this.computer.swap.used;
 
 			return {
-				max: Math.round((max / Math.pow(1024, 2)) * 100) / 100,
-				value: Math.round((used / Math.pow(1024, 2)) * 100) / 100,
+				max: Math.round(max * 100) / 100,
+				value: Math.round(used * 100) / 100,
 				unit: target_unit,
 			};
 		},

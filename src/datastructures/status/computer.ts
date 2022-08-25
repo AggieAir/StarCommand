@@ -48,12 +48,13 @@ export class CPU {
 	}
 
 	public get usage_percent(): number {
-		return this.usage.reduce((a, b) => a + b, 0) / this.cores / 100;
+		return this.usage.reduce((a, b) => a + b, 0) / this.cores;
 	}
 
 	public get bar_object(): Readonly<BarObject> {
-		this._bar_object.high = 100;
-		this._bar_object.low = 0;
+		this._bar_object.high = 225;
+		this._bar_object.low = 200;
+		this._bar_object.max = 255;
 		this._bar_object.value = this.usage_percent;
 		return this._bar_object;
 	}
@@ -133,10 +134,10 @@ export class Computer {
 			if (this.cpus.cores === 0) {
 				return Status.ERROR;
 			}
-			if (this.cpus.usage_percent > 0.8) {
+			if (this.cpus.usage_percent > 200) {
 				return Status.WARNING;
 			}
-			if (this.cpus.usage.some((usage) => usage > 90)) {
+			if (this.cpus.usage.some((usage) => usage > 225)) {
 				return Status.WARNING;
 			}
 			return Status.ONLINE;
@@ -175,6 +176,15 @@ export class Computer {
 			return Status.ONLINE;
 		})();
 
+		console.log(
+			'Status codes: ',
+			update_time_status,
+			cpu_status,
+			memory_status,
+			swap_status,
+			disk_status
+		);
+
 		this._status_code = Math.max(
 			update_time_status,
 			cpu_status,
@@ -193,14 +203,23 @@ export class Computer {
 		this._swap.size = heartbeat.swap[1];
 		this._swap.used = heartbeat.swap[0];
 		this._uptime = heartbeat.uptime;
-		heartbeat.disks.forEach((disk_usage, index) => {
+		const disks = heartbeat.disks
+			.map((component, index) => {
+				if (index % 2 === 0) {
+					return [component, heartbeat.disks[index + 1]];
+				}
+				return [];
+			})
+			.filter((component) => component.length === 2);
+		disks.forEach(([disk_usage, disk_size], index) => {
 			if (!this._disks.has(heartbeat.mounts[index])) {
 				this._disks.set(heartbeat.mounts[index], new Storage());
 			}
 			// We know this is defined because we just defined it above.
 			const disk = this._disks.get(heartbeat.mounts[index])!;
-			disk.size = disk_usage[1];
-			disk.used = disk_usage[0];
+			disk.size = disk_size;
+			disk.used = disk_usage;
 		});
+		this.update_status_code();
 	}
 }

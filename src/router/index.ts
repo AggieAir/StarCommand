@@ -23,8 +23,8 @@ const router = createRouter({
 		{
 			path: '/settings',
 			name: 'settings',
-			// component: () => import('../views/SettingsView.vue')
-			component: HomeView,
+			component: () => import('../views/SettingsView.vue'),
+			// component: HomeView,
 		},
 		{
 			path: '/database',
