@@ -197,7 +197,7 @@ export class Payload {
 		useDatalink().send_command({
 			type: 'control',
 			target: '/start_mission',
-			protocol: 'mavlink',
+			protocol: 'ros',
 			payload: '',
 		});
 	}
@@ -206,7 +206,7 @@ export class Payload {
 		useDatalink().send_command({
 			type: 'control',
 			target: `/end_mission`,
-			protocol: 'mavlink',
+			protocol: 'ros',
 			payload: '',
 		});
 	}
@@ -215,7 +215,7 @@ export class Payload {
 		useDatalink().send_command({
 			type: 'control',
 			target: `/${this.payload_computer.name}/${capture_group}/activate`,
-			protocol: 'mavlink',
+			protocol: 'ros',
 			payload: '',
 		});
 	}
@@ -224,7 +224,7 @@ export class Payload {
 		useDatalink().send_command({
 			type: 'control',
 			target: `/${this.payload_computer.name}/${capture_group}/deactivate`,
-			protocol: 'mavlink',
+			protocol: 'ros',
 			payload: '',
 		});
 	}

@@ -27,7 +27,7 @@ export interface ControlMessage {
 	 * anything that needs to reach the payload while the payload is in the
 	 * air, but is heavily bandwidth-limited.
 	 */
-	protocol: 'ros' | 'mavlink';
+	protocol: 'ros';
 }
 
 export interface ParameterMessage {
