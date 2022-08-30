@@ -73,7 +73,7 @@ export interface IncomingStatusMessage {
 	 * For heartbeats, this will be 'heartbeat'.
 	 * For computer status, this will be 'system_status'.
 	 */
-	topic: 'heartbeat' | 'system_status';
+	topic: 'heartbeat' | 'status';
 	/**
 	 * Differentiates this messsage from other incoming messages.
 	 */
@@ -107,7 +107,7 @@ export type PayloadHeartbeatMsg = Required<
 export type ComputerStatusMsg = Required<
 	Omit<IncomingStatusMessage, 'node' | 'sensor' | 'capture_group'> & {
 		payload: ComputerStatus;
-		topic: 'system_status';
+		topic: 'status';
 	}
 >;
 
@@ -162,6 +162,6 @@ export function message_is_computer_status(
 		message.node === null &&
 		message.sensor === null &&
 		message.capture_group === null &&
-		message.topic === 'system_status'
+		message.topic === 'status'
 	);
 }
