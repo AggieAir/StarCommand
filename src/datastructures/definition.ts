@@ -87,7 +87,13 @@ export type NodeErrorDefinition = {
 };
 
 export interface NodeStateDefinition {
+	/**
+	 * The name that will be displayed in the UI
+	 */
 	name: string;
+	/**
+	 * The text that will appear when hovering over the error
+	 */
 	description: string;
 }
 

@@ -31,6 +31,9 @@ export default defineComponent({
 				return name;
 			}
 			console.warn(`Undefined state: ${state}`);
+			if (state === -129) {
+				return 'Offline';
+			}
 			if (state < 0) {
 				return 'Error';
 			}

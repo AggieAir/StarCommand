@@ -214,7 +214,9 @@ export class Payload {
 	public activate(capture_group: string): void {
 		useDatalink().send_command({
 			type: 'control',
-			target: `/${this.payload_computer.name}/${capture_group}/activate`,
+			target: `/${this.config?.aircraft?.name ?? 'aircraft'}/${
+				this.payload_computer.name
+			}/${capture_group}/activate`,
 			protocol: 'ros',
 			payload: '',
 		});
@@ -223,7 +225,9 @@ export class Payload {
 	public deactivate(capture_group: string): void {
 		useDatalink().send_command({
 			type: 'control',
-			target: `/${this.payload_computer.name}/${capture_group}/deactivate`,
+			target: `/${this.config?.aircraft?.name ?? 'aircraft'}/${
+				this.payload_computer.name
+			}/${capture_group}/deactivate`,
 			protocol: 'ros',
 			payload: '',
 		});
