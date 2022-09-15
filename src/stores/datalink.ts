@@ -277,7 +277,11 @@ export const useDatalink = defineStore({
 				// storage when the config is loaded.
 				config.capture_groups = config.capture_groups.map((group) => {
 					group = { ...group };
-					(group as any).executable = group.definition.executable;
+					console.log(group.definition.executable);
+					// @ts-ignore
+					group.executable = group.definition.executable;
+					// @ts-ignore
+					console.log(group.executable);
 					group.definition = group.definition.name as any;
 					group.sensors = group.sensors.map((sensor) => {
 						sensor = { ...sensor };
