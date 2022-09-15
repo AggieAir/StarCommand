@@ -55,6 +55,8 @@ export const usePayloadStore = defineStore({
 						config = { ...config };
 						config.capture_groups = config.capture_groups.map((group) => {
 							group = { ...group };
+							(group as any).executable =
+								group.definition?.executable ?? (group as any).type.executable;
 							group.definition =
 								(group.definition?.name as any) ?? (group as any).type.name;
 							delete (group as any).type;
