@@ -47,16 +47,21 @@ export enum PayloadState {
 	/**
 	 * Control node is waiting to be configured. This is the default state.
 	 */
-	WAITING_FOR_CONFIG = 12,
+	WAITING_FOR_CONFIG = 13,
 	/**
 	 * Configuration has been parsed and the control node is waiting for
 	 * the mission start command.
 	 */
-	READY_FOR_MISSION_START = 13,
+	READY_FOR_MISSION_START = 14,
 	/**
 	 * Mission is running but no capture groups are active (in a capture state).
 	 */
-	STANDBY = 14,
+	STANDBY = 12,
+	/**
+	 * Mission is complete, ready for shutdown. Functionally identical to
+	 * WAITING_FOR_CONFIG, but semantically different.
+	 */
+	READY_FOR_SHUTDOWN = 15,
 
 	/*
 	/////////\\\\\\\\\
@@ -80,6 +85,11 @@ export enum PayloadState {
 	 * The payload has run out of transient storage space.
 	 */
 	ERROR_MEMORY = -4,
+	/**
+	 * The payload's operating system is in an unrecoverable state and the
+	 * payload computer must be rebooted.
+	 */
+	ERROR_REBOOT_REQUIRED = -128,
 }
 
 export class Payload {
@@ -126,8 +136,10 @@ export class Payload {
 			case PayloadState.CAPTURING:
 				return 'Collecting data';
 			case PayloadState.WAITING_FOR_CONFIG:
-				return 'Safe to power off';
+				return 'Waiting for config upload';
 			case PayloadState.READY_FOR_MISSION_START:
+				return 'Ready for mission start';
+			case PayloadState.READY_FOR_SHUTDOWN:
 				return 'Safe to power off';
 			case PayloadState.STANDBY:
 				return 'Standby';
@@ -139,6 +151,8 @@ export class Payload {
 				return 'Disk is full, cannot store data';
 			case PayloadState.ERROR_MEMORY:
 				return 'Memory is full, cannot operate';
+			case PayloadState.ERROR_REBOOT_REQUIRED:
+				return 'Payload computer reboot is required';
 			default:
 				return 'Unknown state';
 		}
