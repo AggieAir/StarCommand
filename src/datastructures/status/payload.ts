@@ -166,8 +166,13 @@ export class Payload {
 			return;
 		}
 		this._payload_computer = new Computer(_config.payload);
-		if (_config.aircraft?.copilot_installed) {
-			this._copilot_computer = new Computer(`${_config.aircraft.name} Copilot`);
+		if (
+			_config.aircraft?.copilot_installed ??
+			(_config.aircraft as any)?.has_copilot
+		) {
+			this._copilot_computer = new Computer(
+				`${_config.aircraft!.name} Copilot`
+			);
 		}
 
 		this._capture_groups = new Map(
