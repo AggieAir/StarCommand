@@ -151,7 +151,8 @@ export function message_is_payload_heartbeat(
 		message.node === null &&
 		message.sensor === null &&
 		message.capture_group === null &&
-		message.topic === 'heartbeat'
+		message.topic === 'heartbeat' &&
+		!message.computer.includes('copilot')
 	);
 }
 
