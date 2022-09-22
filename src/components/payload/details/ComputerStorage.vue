@@ -2,6 +2,7 @@
 import { defineComponent, type PropType } from 'vue';
 import type { Computer, Storage } from '@/datastructures/status/computer';
 import ComputerMountPoint from '@/components/payload/details/ComputerMountPoint.vue';
+import Tabs from '@/components/widgets/Tabs.vue';
 
 export default defineComponent({
 	props: {
@@ -12,6 +13,7 @@ export default defineComponent({
 	},
 	components: {
 		ComputerMountPoint,
+		Tabs,
 	},
 	computed: {
 		disks() {
@@ -26,17 +28,52 @@ export default defineComponent({
 			});
 			return result;
 		},
+		tabs() {
+			return this.disks.map(([disk, mountpoint]) => ({
+				name: mountpoint,
+				text: this.path_to_name(mountpoint),
+			}));
+		},
+	},
+	methods: {
+		path_to_name(path: string): string {
+			switch (path) {
+				case '/':
+					return 'Root';
+				case '/opt/stardos/data':
+					return 'Data';
+				case '/opt/stardos/tmp':
+					return 'Temp Storage';
+				default:
+					return path;
+			}
+		},
 	},
 });
 </script>
 
 <template>
 	<div class="computer-storage">
-		<ComputerMountPoint
-			v-for="[disk, mountpoint] in disks"
-			:key="mountpoint"
-			:disk="disk"
-			:mountpoint="mountpoint"
-		/>
+		<Tabs :tabs="tabs" class="storage-tabs">
+			<template
+				v-for="[disk, mountpoint] in disks"
+				:key="mountpoint"
+				#[mountpoint]
+			>
+				<ComputerMountPoint :disk="disk" :mountpoint="mountpoint" />
+			</template>
+		</Tabs>
 	</div>
 </template>
+
+<style lang="scss" scoped>
+.computer-storage {
+	.storage-tabs {
+		height: 100%;
+
+		>>> * .tab-content {
+			border: none;
+		}
+	}
+}
+</style>

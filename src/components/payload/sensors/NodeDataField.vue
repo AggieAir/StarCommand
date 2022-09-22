@@ -9,6 +9,11 @@ export default defineComponent({
 			required: true,
 		},
 	},
+	computed: {
+		units() {
+			return this.dataField.definition.units?.replace(/deg /, '°') ?? '';
+		},
+	},
 });
 </script>
 
@@ -17,13 +22,13 @@ export default defineComponent({
 		{{ dataField.definition.name }}
 	</span>
 	<span class="value" :title="dataField.definition.description">
-		{{ dataField.value }} {{ dataField.definition.units ?? '' }}
+		{{ dataField.value }} {{ units }}
 	</span>
 </template>
 
 <style scoped lang="scss">
 .label {
-	text-align: right;
+	text-align: left;
 
 	&::after {
 		content: ':';
@@ -31,6 +36,7 @@ export default defineComponent({
 }
 
 .value {
-	text-align: left;
+	text-align: right;
+	flex-shrink: 1;
 }
 </style>

@@ -41,42 +41,56 @@ export function parse_data_field(
 	data: ArrayBuffer,
 	offset: number
 ): number | boolean | string {
-	switch (definition.type) {
-		case 'uint8':
-			return new Uint8Array(data, offset, 1)[0];
-		case 'uint16':
-			return new Uint16Array(data, offset, 1)[0];
-		case 'uint32':
-			return new Uint32Array(data, offset, 1)[0];
-		case 'uint64':
-			const uint64 = new Uint32Array(data, offset, 2);
-			return uint64[0] << (32 + uint64[1]);
-		case 'int8':
-			return new Int8Array(data, offset, 1)[0];
-		case 'int16':
-			return new Int16Array(data, offset, 1)[0];
-		case 'int32':
-			return new Int32Array(data, offset, 1)[0];
-		case 'int64':
-			const int64 = new Int32Array(data, offset, 2);
-			return int64[0] << (32 + int64[1]);
-		case 'float':
-			return new Float32Array(data, offset, 1)[0];
-		case 'double':
-			return new Float64Array(data, offset, 1)[0];
-		case 'string':
-			return new TextDecoder().decode(
-				new Uint8Array(data, offset, definition.size)
-			);
-		case 'enum':
-			const enum_definition = definition.enum_definition;
-			if (enum_definition === undefined) {
-				throw new Error('Enum definition not found');
-			}
-			return enum_definition[new Uint8Array(data, offset, 1)[0]];
-		default:
-			throw new Error(`Unknown data field type: ${definition.type}`);
-	}
+	const view = data.slice(offset);
+	let size = 1;
+	const result = (() => {
+		switch (definition.type) {
+			case 'uint8':
+				return new Uint8Array(view, 0, 1)[0];
+			case 'uint16':
+				size = 2;
+				return new Uint16Array(view, 0, 1)[0];
+			case 'uint32':
+				size = 4;
+				return new Uint32Array(view, 0, 1)[0];
+			case 'uint64':
+				size = 8;
+				const uint64 = new Uint32Array(view, 0, 2);
+				return uint64[0] << (32 + uint64[1]);
+			case 'int8':
+				return new Int8Array(view, 0, 1)[0];
+			case 'int16':
+				size = 2;
+				return new Int16Array(view, 0, 1)[0];
+			case 'int32':
+				size = 4;
+				return new Int32Array(view, 0, 1)[0];
+			case 'int64':
+				size = 8;
+				const int64 = new Int32Array(view, 0, 2);
+				return int64[0] << (32 + int64[1]);
+			case 'float':
+				size = 4;
+				return new Float32Array(view, 0, 1)[0];
+			case 'double':
+				size = 8;
+				return new Float64Array(view, 0, 1)[0];
+			case 'string':
+				size = definition.size;
+				return new TextDecoder().decode(
+					new Uint8Array(view, 0, definition.size)
+				);
+			case 'enum':
+				const enum_definition = definition.enum_definition;
+				if (enum_definition === undefined) {
+					throw new Error('Enum definition not found');
+				}
+				return enum_definition[new Uint8Array(view, 0, 1)[0]];
+			default:
+				throw new Error(`Unknown data field type: ${definition.type}`);
+		}
+	})();
+	return result;
 }
 
 /**
@@ -97,7 +111,7 @@ export interface Definition {
 }
 
 export interface Configuration<DefinitionType extends Definition> {
-	definition: DefinitionType;
+	definition?: DefinitionType;
 	name: string;
 }
 
@@ -150,6 +164,7 @@ export abstract class StardosNode<
 
 		node.config = config;
 		node.parse_config(config);
+		node._definition = config.definition;
 
 		return node;
 	}
@@ -352,15 +367,17 @@ export abstract class StardosNode<
 		if (!this._definition) {
 			return [];
 		}
-		const fields = this._definition.data_fields;
+		const fields =
+			this._definition.data_fields ?? console.debug('No data fields') ?? [];
 		let offset = 0;
 		return fields.map((field) => {
-			offset += field.size;
 			try {
 				const value = parse_data_field(field, data, offset);
+				offset += field.size;
 				return { definition: field, value };
 			} catch (e) {
 				console.error(e);
+				offset += field.size;
 				return { definition: field, value: 'error decoding data' };
 			}
 		});

@@ -26,7 +26,7 @@ export type SensorConfiguration = {
 export type CaptureGroupConfiguration = {
 	name: string; // Name of this particular group, must be unique among capture groups
 	sensors: SensorConfiguration[]; // List of SensorConfiguration objects
-	definition: CaptureTypeDefinition;
+	definition?: CaptureTypeDefinition;
 	config?: ConfigEntries<string | number | boolean>;
 	cadence?: number;
 	activation_alt?: number;

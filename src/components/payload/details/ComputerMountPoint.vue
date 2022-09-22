@@ -77,7 +77,6 @@ export default defineComponent({
 
 <template>
 	<div class="computer-mount-point">
-		<div class="header">Storage: {{ name }}</div>
 		<div class="details">
 			<span class="label">Storage available:</span>
 			<span>{{ storage.max }} {{ storage.max_unit }}</span>

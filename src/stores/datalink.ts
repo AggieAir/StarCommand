@@ -194,7 +194,7 @@ export const useDatalink = defineStore({
 			this.telemetry_connection?.addEventListener('message', (msg) => {
 				const content = JSON.parse(msg.data, (key, value) => {
 					if (key === 'data') {
-						return new Uint8Array(value);
+						return new Uint8Array(value).buffer;
 					}
 					return value;
 				});
@@ -277,12 +277,12 @@ export const useDatalink = defineStore({
 				// storage when the config is loaded.
 				config.capture_groups = config.capture_groups.map((group) => {
 					group = { ...group };
-					console.log(group.definition.executable);
+					console.log(group.definition?.executable);
 					// @ts-ignore
 					group.executable = group.definition.executable;
 					// @ts-ignore
 					console.log(group.executable);
-					group.definition = group.definition.name as any;
+					group.definition = group.definition?.name as any;
 					group.sensors = group.sensors.map((sensor) => {
 						sensor = { ...sensor };
 						sensor.nodes = sensor.nodes.map((node) => {

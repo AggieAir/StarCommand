@@ -7,6 +7,7 @@ import {
 	type NodeConfiguration,
 	type SensorConfiguration,
 } from '@/datastructures/configuration';
+import type { NodeDefinition } from '@/datastructures/definition';
 import { defineStore } from 'pinia';
 
 export const useConfigStore = defineStore({
@@ -48,6 +49,115 @@ export const useConfigStore = defineStore({
 			return this.get_sensor(group, sensor)?.nodes.find(
 				(node) => node.name === node_name
 			);
+		},
+		add_capture_group(name: string): CaptureGroupConfiguration | undefined {
+			const group = {
+				name,
+				config: {},
+				definition: undefined,
+				sensors: [],
+			};
+			this.config?.capture_groups.push(group);
+			return group;
+		},
+		add_sensor(
+			name: string,
+			capture_group: CaptureGroupConfiguration
+		): SensorConfiguration {
+			const sensor = {
+				name,
+				nodes: [],
+			};
+			capture_group.sensors.push(sensor);
+			return sensor;
+		},
+		add_node(
+			definition: NodeDefinition,
+			sensor: SensorConfiguration
+		): NodeConfiguration {
+			const name: string = (() => {
+				// Get a list of other nodes that share this node definition
+				const other_nodes = sensor.nodes.filter(
+					(node) => node.definition.name == definition.name
+				);
+				if (other_nodes.length > 0) {
+					// If those nodes exist, rename them all with indices indicating their relative positioning
+					// in the pipeline
+					other_nodes.forEach(
+						(node, index) => (node.name = `${node.definition.name}_${index}`)
+					);
+					return `${definition.name}_${other_nodes.length}`;
+				} else {
+					// Otherwise, just return the name of the definition.
+					return definition.name;
+				}
+			})();
+			const node: NodeConfiguration = {
+				name,
+				human_name: definition.human_name,
+				executable: definition.executable,
+				definition,
+				config: {},
+			};
+			sensor.nodes.push(node);
+			return node;
+		},
+		remove_capture_group(group: CaptureGroupConfiguration) {
+			if (!this.config) return;
+			this.config.capture_groups = this.config.capture_groups.filter(
+				(test) => test !== group
+			);
+		},
+		remove_sensor(
+			sensor: SensorConfiguration,
+			from: CaptureGroupConfiguration
+		) {
+			from.sensors = from.sensors.filter((test) => test !== sensor);
+		},
+		remove_node(node: NodeConfiguration, from: SensorConfiguration) {
+			from.nodes = from.nodes.filter((test) => test !== node);
+			// Rename all other nodes in the pipeline to adjust for the removed node
+			const matching = from.nodes.filter(
+				(test) => test.definition.name == node.definition.name
+			);
+			if (matching.length === 1) {
+				matching[0].name = matching[0].definition.name;
+			} else if (matching.length > 1) {
+				matching.forEach((node, index) => {
+					node.name = `${node.definition.name}_${index}`;
+				});
+			}
+		},
+		/**
+		 * Promoting a node places it earlier in the pipeline by one node.
+		 * @param node The node to promote
+		 * @param sensor The sensor the node is in. The function will do nothing if the given node is not in this sensor.
+		 */
+		promote_node(node: NodeConfiguration, sensor: SensorConfiguration) {
+			const index = sensor.nodes.findIndex((test) => test === node);
+			if (index === -1) {
+				throw new Error('Cannot promote a node in a sensor it is not in');
+			}
+			if (index < 1) {
+				throw new Error(
+					'Node is already the first node in the sensor, cannot promote'
+				);
+			}
+			sensor.nodes.splice(index, 1);
+			sensor.nodes.splice(index - 1, 0, node);
+		},
+		demote_node(node: NodeConfiguration, sensor: SensorConfiguration) {
+			const index = sensor.nodes.findIndex((test) => test === node);
+			if (index === -1) {
+				throw new Error('Cannot demote a node in a sensor it is not in');
+			}
+			if (index >= sensor.nodes.length - 1) {
+				throw new Error(
+					'Node is already the last node in the sensor, cannot demote'
+				);
+			}
+			sensor.nodes.splice(index, 1);
+			sensor.nodes.splice(index + 1, 0, node);
 		},
 		async save_config() {
 			if (!this.config) {

@@ -4,6 +4,7 @@ import type {
 	MissionConfiguration,
 	MissionMetadata,
 } from '@/datastructures/configuration';
+import { ConfigEntryType } from '@/datastructures/definition';
 import { Notification, NotificationUrgency } from '@/notification';
 import { Alert, useAlert } from '@/stores/alert';
 import { useNotifications } from '@/stores/notifications';
@@ -52,6 +53,7 @@ export default defineComponent({
 						NotificationUrgency.LOW
 					)
 				);
+				await this.load_missions();
 			} catch (e) {
 				useAlert().open(
 					new Alert(
@@ -78,6 +80,27 @@ export default defineComponent({
 					)
 				);
 				return;
+			}
+			if (mission.date !== this.today()) {
+				const result = await useAlert().open({
+					title: 'Incorrect Date',
+					message:
+						'This mission is not dated for today. Would you like to use it anyways?',
+					buttons: [
+						{
+							label: 'Yes',
+							dangerous: true,
+						},
+						{
+							label: 'No',
+						},
+					],
+				});
+				if (result === 0) {
+					mission.date = this.today();
+				} else {
+					return;
+				}
 			}
 			usePayloadStore().initialize(mission, true);
 			this.$router.push({ name: 'home' });
