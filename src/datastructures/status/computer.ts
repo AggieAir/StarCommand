@@ -176,15 +176,6 @@ export class Computer {
 			return Status.ONLINE;
 		})();
 
-		console.log(
-			'Status codes: ',
-			update_time_status,
-			cpu_status,
-			memory_status,
-			swap_status,
-			disk_status
-		);
-
 		this._status_code = Math.max(
 			update_time_status,
 			cpu_status,

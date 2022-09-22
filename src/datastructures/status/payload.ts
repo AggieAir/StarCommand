@@ -5,6 +5,7 @@ import { Computer } from './computer';
 import {
 	message_is_capture_group_heartbeat,
 	message_is_computer_status,
+	message_is_copilot_heartbeat,
 	message_is_node_heartbeat,
 	message_is_payload_heartbeat,
 	type Heartbeat,
@@ -185,7 +186,6 @@ export class Payload {
 
 	public handle_message(message: IncomingStatusMessage): void {
 		if (message_is_capture_group_heartbeat(message)) {
-			console.log('Received capture group heartbeat');
 			this._capture_groups
 				.get(message.capture_group)
 				?.parse_heartbeat(message.payload);
@@ -203,6 +203,8 @@ export class Payload {
 			}
 		} else if (message_is_payload_heartbeat(message)) {
 			this.parse_heartbeat(message.payload);
+		} else if (message_is_copilot_heartbeat(message)) {
+			// Do nothing
 		} else {
 			console.error(`Unknown message type: ${JSON.stringify(message)}`);
 		}

@@ -246,7 +246,7 @@ export abstract class StardosNode<
 				return Status.INITIALIZING;
 			}
 			if (States.is_standby_state(this.state.state)) {
-				return Status.STANDBY;
+				return Status.ONLINE;
 			}
 			if (States.is_running_state(this.state.state)) {
 				return Status.RUNNING;
@@ -255,11 +255,26 @@ export abstract class StardosNode<
 			return Status.ONLINE;
 		})();
 
+		const WARNING_FAILURE_RATE = 0.05;
+		const ERROR_FAILURE_RATE = 0.1;
+
+		const failures_status = (() => {
+			const failure_rate = this.state.failures / this.state.requests;
+			if (failure_rate > ERROR_FAILURE_RATE) {
+				return Status.ERROR;
+			}
+			if (failure_rate > WARNING_FAILURE_RATE) {
+				return Status.WARNING;
+			}
+			return Status.ONLINE;
+		})();
+
 		// Get the highest status code.
 		this._status_code = Math.max(
 			update_time_status,
 			warnings_status,
-			state_status
+			state_status,
+			failures_status
 		);
 		return this._status_code;
 	}

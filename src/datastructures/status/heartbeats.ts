@@ -156,6 +156,18 @@ export function message_is_payload_heartbeat(
 	);
 }
 
+export function message_is_copilot_heartbeat(
+	message: IncomingStatusMessage
+): message is PayloadHeartbeatMsg {
+	return (
+		message.node === null &&
+		message.sensor === null &&
+		message.capture_group === null &&
+		message.topic === 'heartbeat' &&
+		message.computer.includes('copilot')
+	);
+}
+
 export function message_is_computer_status(
 	message: IncomingStatusMessage
 ): message is ComputerStatusMsg {

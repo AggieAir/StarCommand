@@ -295,7 +295,8 @@ export default class Database {
 				aircraft: data.aircraft?.name ?? '',
 				uuid: data.uuid!,
 			};
-			await this.save(Table.MissionMetadata, metadata);
+			// Clobber any older versions of this same mission
+			await this.clobber(Table.MissionMetadata, metadata);
 			data.capture_groups = data.capture_groups.map((cg) => {
 				if ('type' in cg) {
 					// @ts-ignore this is a conversion from the old format
@@ -305,7 +306,7 @@ export default class Database {
 				}
 				return cg;
 			});
-			return this.save(Table.MissionConfiguration, data);
+			return this.clobber(Table.MissionConfiguration, data);
 		}
 		return this.save(object.type, object.content);
 	}

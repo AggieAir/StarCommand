@@ -7,6 +7,7 @@ import Tab from '../widgets/Tab.vue';
 import ComputerOverview from './overview/ComputerOverview.vue';
 import ComputerCPU from './details/ComputerCPU.vue';
 import ComputerMemory from './details/ComputerMemory.vue';
+import ComputerStorage from './details/ComputerStorage.vue';
 import { useContextMenu } from '@/stores/context';
 import { Status } from '@/datastructures/status/status_enum';
 
@@ -134,6 +135,7 @@ export default defineComponent({
 		ComputerOverview,
 		ComputerCPU,
 		ComputerMemory,
+		ComputerStorage,
 	},
 });
 </script>
@@ -162,18 +164,19 @@ export default defineComponent({
 				]"
 			>
 				<template #overview>
-					<ComputerOverview class="detail-view" :computer="computer" />
+					<ComputerOverview class="detail-view" :computer="computer!" />
 				</template>
 				<template #cpu>
 					<!-- <div class="detail-view">CPU tab</div> -->
-					<ComputerCPU class="detail-view" :computer="computer" />
+					<ComputerCPU class="detail-view" :computer="computer!" />
 				</template>
 				<template #memory>
 					<!-- <div class="detail-view">Memory tab</div> -->
-					<ComputerMemory class="detail-view" :computer="computer" />
+					<ComputerMemory class="detail-view" :computer="computer!" />
 				</template>
 				<template #storage>
-					<div class="detail-view">Storage tab</div>
+					<!-- <div class="detail-view">Storage tab</div> -->
+					<ComputerStorage class="detail-view" :computer="computer!" />
 				</template>
 			</Tabs>
 			<div v-else-if="computer" class="offline exists">
