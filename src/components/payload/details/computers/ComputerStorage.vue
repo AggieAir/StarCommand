@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue';
 import type { Computer, Storage } from '@/datastructures/status/computer';
-import ComputerMountPoint from '@/components/payload/details/ComputerMountPoint.vue';
+import ComputerMountPoint from '@/components/payload/details/computers/ComputerMountPoint.vue';
 import Tabs from '@/components/widgets/Tabs.vue';
 
 export default defineComponent({

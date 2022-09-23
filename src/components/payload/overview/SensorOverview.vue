@@ -53,14 +53,16 @@ export default defineComponent({
 </script>
 
 <template>
-	<div>
-		<div class="sensor-header">
+	<div class="sensor-overview">
+		<div class="header">
 			<span>{{ sensor.name }}</span>
-			<LED small :[led_color]="true" class="sensor-led" />
+			<LED small :[led_color]="true" class="sensor-led" :blink="led_blink" />
 		</div>
-		<div class="sensor-overview">
-			<span class="label">Failures</span>
-			<span class="value">{{ failures }}</span>
+		<div class="overview">
+			<div class="detail">
+				<span class="label">Failures</span>
+				<span class="value">{{ failures }}</span>
+			</div>
 			<NodeDataField
 				v-for="field in sensor_node.state.data"
 				:key="field.definition.name"
@@ -71,36 +73,42 @@ export default defineComponent({
 </template>
 
 <style scoped lang="scss">
-.sensor-header {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 0.25rem;
-	font-size: 1rem;
-	font-weight: bold;
-
-	width: 150px;
-}
-
 .sensor-overview {
-	display: grid;
-	grid-template-columns: max-content 1fr;
-	gap: 0.25rem;
-	overflow-y: scroll;
-	padding: 0.25rem;
-	font-size: 0.8rem;
+	.header {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.25rem;
+		font-size: 1rem;
+		font-weight: bold;
 
-	width: 150px;
-
-	.label {
-		&::after {
-			content: ':';
-		}
+		width: 150px;
 	}
 
-	.value {
-		text-align: right;
+	.overview {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		overflow-y: scroll;
+		padding: 0.25rem;
+		font-size: 0.8rem;
+
+		width: 150px;
+
+		.detail {
+			display: flex;
+			.label {
+				&::after {
+					content: ':';
+				}
+			}
+
+			.value {
+				flex-grow: 1;
+				text-align: right;
+			}
+		}
 	}
 }
 </style>

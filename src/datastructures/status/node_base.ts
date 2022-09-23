@@ -165,6 +165,11 @@ export abstract class StardosNode<
 		node.config = config;
 		node.parse_config(config);
 		node._definition = config.definition;
+		(node as Subclass)._state.data =
+			config.definition?.data_fields?.map((field) => ({
+				definition: field,
+				value: undefined as any,
+			})) ?? [];
 
 		return node;
 	}

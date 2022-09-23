@@ -5,9 +5,9 @@ import LED from '@/components/widgets/LED.vue';
 import Tabs from '../widgets/Tabs.vue';
 import Tab from '../widgets/Tab.vue';
 import ComputerOverview from './overview/ComputerOverview.vue';
-import ComputerCPU from './details/ComputerCPU.vue';
-import ComputerMemory from './details/ComputerMemory.vue';
-import ComputerStorage from './details/ComputerStorage.vue';
+import ComputerCPU from './details/computers/ComputerCPU.vue';
+import ComputerMemory from './details/computers/ComputerMemory.vue';
+import ComputerStorage from './details/computers/ComputerStorage.vue';
 import { useContextMenu } from '@/stores/context';
 import { Status } from '@/datastructures/status/status_enum';
 

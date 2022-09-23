@@ -3,7 +3,6 @@ import type { CaptureGroup } from '@/datastructures/status/capture_group';
 import { defineComponent, type PropType } from 'vue';
 import SensorOverview from './SensorOverview.vue';
 import Button from '../../widgets/Button.vue';
-import { Status } from '@/datastructures/status/status_enum';
 import { usePayloadStore } from '@/stores/payload';
 
 export default defineComponent({
@@ -44,22 +43,6 @@ export default defineComponent({
 				return 'Running';
 			}
 			return 'Standby';
-			// switch (this.capture_group.status_code) {
-			// 	case Status.ERROR:
-			// 		return 'Error';
-			// 	case Status.ONLINE:
-			// 		return 'Online';
-			// 	case Status.OFFLINE:
-			// 		return 'Offline';
-			// 	case Status.RUNNING:
-			// 		return 'Running';
-			// 	case Status.STANDBY:
-			// 		return 'Standby';
-			// 	case Status.INITIALIZING:
-			// 		return 'Initializing';
-			// 	case Status.WARNING:
-			// 		return 'Warning';
-			// }
 		},
 		error() {
 			return this.capture_group.state.state < 0;

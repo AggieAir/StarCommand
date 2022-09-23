@@ -18,25 +18,29 @@ export default defineComponent({
 </script>
 
 <template>
-	<span class="label" :title="dataField.definition.description">
-		{{ dataField.definition.name }}
-	</span>
-	<span class="value" :title="dataField.definition.description">
-		{{ dataField.value }} {{ units }}
-	</span>
+	<div class="detail">
+		<span class="label" :title="dataField.definition.description">
+			{{ dataField.definition.name }}
+		</span>
+		<span class="value" :title="dataField.definition.description">
+			{{ dataField.value }} {{ units }}
+		</span>
+	</div>
 </template>
 
 <style scoped lang="scss">
-.label {
-	text-align: left;
+.detail {
+	.label {
+		text-align: left;
 
-	&::after {
-		content: ':';
+		&::after {
+			content: ':';
+		}
 	}
-}
 
-.value {
-	text-align: right;
-	flex-shrink: 1;
+	.value {
+		text-align: right;
+		flex-grow: 1;
+	}
 }
 </style>

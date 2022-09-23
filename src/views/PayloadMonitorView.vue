@@ -15,6 +15,8 @@ import { type Payload, PayloadState } from '@/datastructures/status/payload';
 import Tabs from '../components/widgets/Tabs.vue';
 import Button from '../components/widgets/Button.vue';
 import Control from '../components/payload/Control.vue';
+import type { CaptureGroup } from '@/datastructures/status/capture_group';
+import CaptureGroupDetail from '../components/payload/details/CaptureGroupDetail.vue';
 
 export default defineComponent({
 	setup() {
@@ -65,6 +67,23 @@ export default defineComponent({
 		payload(): Payload | null {
 			return usePayloadStore().payload as Payload | null;
 		},
+		capture_groups(): [string, CaptureGroup][] {
+			return [...(this.payload?.capture_groups.entries() ?? [])];
+		},
+		tabs() {
+			// @ts-ignore
+			const capture_groups = this.capture_groups;
+			return [
+				{
+					name: 'overview',
+					text: 'Overview',
+				},
+				...capture_groups.map(([name]: [string, any]) => ({
+					name,
+					text: `Capture group ${name}`,
+				})),
+			];
+		},
 	},
 	components: {
 		ComputerStatus,
@@ -72,6 +91,7 @@ export default defineComponent({
 		Tabs,
 		Button,
 		Control,
+		CaptureGroupDetail,
 	},
 });
 </script>
@@ -87,22 +107,16 @@ export default defineComponent({
 				{{ payload.state_string }}
 			</span>
 		</div>
-		<Tabs
-			:tabs="[
-				{
-					name: 'overview',
-					text: 'Overview',
-				},
-			]"
-			bottom
-			class="main"
-		>
+		<Tabs :tabs="tabs" bottom class="main">
 			<template #overview>
 				<MissionOverview
 					class="monitor-overview"
 					v-if="payload"
 					:payload="payload"
 				/>
+			</template>
+			<template v-for="[name, group] in capture_groups" #[name] :key="name">
+				<CaptureGroupDetail :capture_group="group" />
 			</template>
 		</Tabs>
 		<Control />

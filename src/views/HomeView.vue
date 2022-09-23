@@ -1,5 +1,15 @@
-<script setup lang="ts"></script>
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+export default defineComponent({
+	computed: {
+		path() {
+			return this.$route.fullPath;
+		},
+	},
+});
+</script>
 
 <template>
-	<div>You shouldn't see this...</div>
+	<div>Route {{ path }} is working...</div>
 </template>

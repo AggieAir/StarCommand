@@ -200,6 +200,11 @@ export type CaptureTypeDefinition = {
 	states: { [id: number]: NodeStateDefinition };
 	data_fields: NodeDataFieldDefinition[];
 	errors: NodeErrorDefinition[];
+	/**
+	 * If the capture group can be manually activated or deactivated. If absent,
+	 * StarCommand will show the buttons, but they may not do anything.
+	 */
+	manual?: boolean;
 };
 
 export type AvionicsDefinition = {

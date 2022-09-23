@@ -18,6 +18,13 @@ const router = createRouter({
 		{
 			path: '/payload',
 			name: 'payload-config',
+			// component: () => import ('../views/LoadConfigView.vue'),
+			component: HomeView,
+		},
+		{
+			path: '/payload/edit/:uuid?',
+			name: 'payload-edit-config',
+			props: true,
 			component: () => import('../views/PayloadConfigView.vue'),
 		},
 		{

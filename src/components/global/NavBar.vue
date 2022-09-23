@@ -23,7 +23,7 @@ export default defineComponent({
 			},
 			{
 				target: { name: 'payload-config' },
-				text: 'Payload Settings',
+				text: 'Payload Configuration',
 			},
 			{
 				target: { name: 'load' },
