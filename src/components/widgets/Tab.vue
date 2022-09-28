@@ -26,6 +26,5 @@ export default defineComponent({
 
 .tab-content {
 	padding: 0.5rem;
-	border: 2px solid var(--color-background-soft);
 }
 </style>

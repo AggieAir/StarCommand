@@ -201,6 +201,7 @@ export default defineComponent({
 		overflow-y: scroll;
 		padding: 0.25rem;
 		font-size: 0.8rem;
+		max-height: calc(100% - 1.5rem);
 
 		min-width: 150px;
 

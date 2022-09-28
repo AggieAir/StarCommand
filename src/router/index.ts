@@ -16,16 +16,20 @@ const router = createRouter({
 			// component: HomeView,
 		},
 		{
-			path: '/payload',
-			name: 'payload-config',
-			// component: () => import ('../views/LoadConfigView.vue'),
-			component: HomeView,
+			path: '/config',
+			name: 'config',
+			component: () => import('../views/SelectConfigView.vue'),
 		},
 		{
-			path: '/payload/edit/:uuid?',
-			name: 'payload-edit-config',
+			path: '/config/new',
+			name: 'new-config',
+			component: () => import('../views/EditConfigView.vue'),
+		},
+		{
+			path: '/config/edit/:uuid',
+			name: 'edit-config',
 			props: true,
-			component: () => import('../views/PayloadConfigView.vue'),
+			component: () => import('../views/EditConfigView.vue'),
 		},
 		{
 			path: '/settings',

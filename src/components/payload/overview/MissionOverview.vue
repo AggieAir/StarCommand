@@ -40,10 +40,14 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+$fr1: 5.9rem;
+
 .mission-overview {
 	display: grid;
 	grid-template-columns: [payload-computer] 1fr [copilot-computer] 1fr;
-	grid-template-rows: [computers] 3fr [sensors] 2fr [coprocessors] 2fr;
+	grid-template-rows: [computers] calc($fr1 * 3) [sensors] calc($fr1 * 2) [coprocessors] calc(
+			$fr1 * 2
+		);
 	grid-template-areas:
 		'payload-computer copilot-computer'
 		'sensors sensors'

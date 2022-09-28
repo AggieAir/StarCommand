@@ -66,13 +66,15 @@ export interface TabDefinition {
 				{{ text }}
 			</div>
 		</div>
-		<Tab
-			v-for="({ name }, idx) in tabs"
-			:key="name"
-			:selected="selected === idx"
-		>
-			<slot :name="name"></slot>
-		</Tab>
+		<div class="tab">
+			<Tab
+				v-for="({ name }, idx) in tabs"
+				:key="name"
+				:selected="selected === idx"
+			>
+				<slot :name="name"></slot>
+			</Tab>
+		</div>
 	</div>
 </template>
 
@@ -108,8 +110,10 @@ export interface TabDefinition {
 		}
 	}
 
-	.tab-content {
-		flex-grow: 1;
+	.tab {
+		position: relative;
+		overflow-y: scroll;
+		border: 2px solid var(--color-background-soft);
 	}
 }
 </style>

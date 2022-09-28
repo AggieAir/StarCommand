@@ -8,22 +8,29 @@ import {
 	type SensorConfiguration,
 } from '@/datastructures/configuration';
 import type { NodeDefinition } from '@/datastructures/definition';
+import type { UUID, ValueOf } from '@/utility_types';
 import { defineStore } from 'pinia';
+import { Prompt } from './prompt';
 
 export const useConfigStore = defineStore({
 	id: 'config',
 	state: () => ({
 		config: null as MissionConfiguration | null,
+		dirty: false,
 	}),
 	actions: {
-		new_config() {
+		async new_config() {
 			this.config = {
 				uuid: generate_uuid(),
-				name: '',
+				name: await new Prompt(
+					'New config name',
+					'Please input a name for the new configuration:'
+				).show(),
 				payload: '',
 				altitude: 0,
 				capture_groups: [],
 			};
+			this.dirty = true;
 		},
 		async load_config(uuid: string) {
 			const db = await Database.get_database();
@@ -31,7 +38,44 @@ export const useConfigStore = defineStore({
 				Table.MissionConfiguration,
 				uuid
 			);
-			this.config = config;
+			const that = this;
+			this.config = new Proxy<MissionConfiguration>(config, {
+				set(
+					target,
+					property: keyof MissionConfiguration,
+					new_value: ValueOf<MissionConfiguration>
+				) {
+					(target[property] as any) = new_value;
+					that.dirty = true;
+					return true;
+				},
+			});
+		},
+		async clone_config(uuid: string): Promise<UUID> {
+			const db = await Database.get_database();
+			const config = await db.get<MissionConfiguration>(
+				Table.MissionConfiguration,
+				uuid
+			);
+			const metadata: MissionMetadata = {
+				uuid: generate_uuid(),
+				name: await new Prompt(
+					'New config name',
+					'Please input a name for the new configuration:'
+				).show(),
+				date: await new Prompt(
+					'New mission date',
+					'Please input a date for the new configuration:'
+				).show(),
+				payload: config.payload,
+				aircraft: config.aircraft?.name ?? 'none',
+			};
+			config.uuid = metadata.uuid;
+			config.name = metadata.name;
+			config.date = metadata.date;
+			await db.save(Table.MissionMetadata, metadata);
+			await db.save(Table.MissionConfiguration, config);
+			return config.uuid;
 		},
 		get_capture_group(name: string): CaptureGroupConfiguration | undefined {
 			return this.config?.capture_groups.find((group) => group.name === name);
@@ -57,6 +101,7 @@ export const useConfigStore = defineStore({
 				definition: undefined,
 				sensors: [],
 			};
+			this.dirty = true;
 			this.config?.capture_groups.push(group);
 			return group;
 		},
@@ -68,6 +113,7 @@ export const useConfigStore = defineStore({
 				name,
 				nodes: [],
 			};
+			this.dirty = true;
 			capture_group.sensors.push(sensor);
 			return sensor;
 		},
@@ -99,11 +145,13 @@ export const useConfigStore = defineStore({
 				definition,
 				config: {},
 			};
+			this.dirty = true;
 			sensor.nodes.push(node);
 			return node;
 		},
 		remove_capture_group(group: CaptureGroupConfiguration) {
 			if (!this.config) return;
+			this.dirty = true;
 			this.config.capture_groups = this.config.capture_groups.filter(
 				(test) => test !== group
 			);
@@ -112,9 +160,11 @@ export const useConfigStore = defineStore({
 			sensor: SensorConfiguration,
 			from: CaptureGroupConfiguration
 		) {
+			this.dirty = true;
 			from.sensors = from.sensors.filter((test) => test !== sensor);
 		},
 		remove_node(node: NodeConfiguration, from: SensorConfiguration) {
+			this.dirty = true;
 			from.nodes = from.nodes.filter((test) => test !== node);
 			// Rename all other nodes in the pipeline to adjust for the removed node
 			const matching = from.nodes.filter(
@@ -143,6 +193,7 @@ export const useConfigStore = defineStore({
 					'Node is already the first node in the sensor, cannot promote'
 				);
 			}
+			this.dirty = true;
 			sensor.nodes.splice(index, 1);
 			sensor.nodes.splice(index - 1, 0, node);
 		},
@@ -156,6 +207,7 @@ export const useConfigStore = defineStore({
 					'Node is already the last node in the sensor, cannot demote'
 				);
 			}
+			this.dirty = true;
 			sensor.nodes.splice(index, 1);
 			sensor.nodes.splice(index + 1, 0, node);
 		},
@@ -176,11 +228,15 @@ export const useConfigStore = defineStore({
 				await db.save<MissionMetadata>(Table.MissionMetadata, {
 					name: this.config.name,
 					uuid: this.config.uuid,
-					date: this.config.date ?? 'unknown',
+					date: this.config.date ?? 'none',
 					payload: this.config.payload,
-					aircraft: this.config.aircraft?.name ?? 'unknown',
+					aircraft: this.config.aircraft?.name ?? 'none',
 				});
 			}
+			await db.clobber<MissionConfiguration>(
+				Table.MissionConfiguration,
+				this.config
+			);
 		},
 	},
 });

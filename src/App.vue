@@ -10,6 +10,8 @@ import PayloadMonitorView from './views/PayloadMonitorView.vue';
 import ContextMenu from './components/widgets/ContextMenu.vue';
 import { useContextMenu } from './stores/context';
 import AlertBox from './components/widgets/AlertBox.vue';
+import PromptBox from './components/widgets/PromptBox.vue';
+import { back } from './pagetree';
 
 export default defineComponent({
 	computed: {
@@ -26,6 +28,7 @@ export default defineComponent({
 		PayloadMonitorView,
 		ContextMenu,
 		AlertBox,
+		PromptBox,
 	},
 	mounted() {
 		// Connect to the datalink server.
@@ -48,9 +51,7 @@ export default defineComponent({
 				if (contextMenu.is_open) {
 					contextMenu.close();
 				} else {
-					if (this.$route.name !== 'home') {
-						this.$router.back();
-					}
+					back(this.$router);
 				}
 			}
 		});
@@ -70,6 +71,7 @@ export default defineComponent({
 				<RouterView />
 			</Modal>
 			<AlertBox />
+			<PromptBox />
 		</main>
 	</div>
 	<footer>

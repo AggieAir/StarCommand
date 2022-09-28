@@ -5,6 +5,7 @@ import type {
 	ConfigEntryConstraint,
 	NodeDefinition,
 } from './definition';
+import type { UUID } from '@/utility_types';
 
 export type ConfigEntries<T> = {
 	[key: string]: T;
@@ -45,7 +46,7 @@ export type MissionConfiguration = {
 
 export interface MissionMetadata {
 	name: string;
-	uuid: string;
+	uuid: UUID;
 	date: string;
 	payload: string;
 	aircraft: string;
@@ -221,7 +222,7 @@ export function check_constraint(
  * running in insecure contexts, and we need to be able to generate UUIDs in
  * the browser when running on a local server.
  */
-export function generate_uuid(): string {
+export function generate_uuid(): UUID {
 	if (crypto.randomUUID !== undefined) {
 		return crypto.randomUUID();
 	}
