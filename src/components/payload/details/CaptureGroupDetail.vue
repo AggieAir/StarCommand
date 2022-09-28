@@ -71,26 +71,18 @@ export default defineComponent({
 <template>
 	<div class="capture-group-detail">
 		<div class="header">
-			<div class="name">
-				{{ capture_group.name }}
-			</div>
-			<div class="state">
-				<div :class="{ standby, active, error, initializing }">
-					{{ state }}
+			<div class="name">Capture group: {{ capture_group.name }}</div>
+			<div class="info">
+				<div class="state">
+					<div :class="{ standby, active, error, initializing }">
+						{{ state }}
+					</div>
+				</div>
+				<div class="requests">
+					Capture attempts:
+					<span>{{ capture_group.state.requests ?? 0 }}</span>
 				</div>
 			</div>
-			<div class="requests">
-				Capture attempts:
-				<span>{{ capture_group.state.requests ?? 0 }}</span>
-			</div>
-		</div>
-		<div class="sensors">
-			<SensorDetail
-				class="sensor"
-				v-for="[name, sensor] in capture_group.sensors"
-				:key="name"
-				:sensor="sensor"
-			/>
 		</div>
 		<div class="control" v-if="controllable">
 			<Button class="activate" @click="activate" :disabled="!standby">
@@ -99,6 +91,14 @@ export default defineComponent({
 			<Button class="deactivate" @click="deactivate" :disabled="!active">
 				Deactivate
 			</Button>
+		</div>
+		<div class="sensors">
+			<SensorDetail
+				class="sensor"
+				v-for="[name, sensor] in capture_group.sensors"
+				:key="name"
+				:sensor="sensor"
+			/>
 		</div>
 	</div>
 </template>
@@ -109,8 +109,63 @@ export default defineComponent({
 		text-align: center;
 		.name {
 			font-weight: bold;
-			font-size: 1.5em;
+			font-size: 1.3rem;
 		}
+
+		.info {
+			display: flex;
+			width: 50%;
+			margin: auto;
+			justify-content: space-between;
+			padding: 0.25rem;
+		}
+	}
+
+	.control {
+		display: flex;
+		width: 50%;
+		margin: auto;
+		margin-bottom: 0.5rem;
+
+		.button {
+			flex: 1 0 content;
+			text-align: center;
+			font-size: 1.1rem;
+
+			&.activate {
+				color: var(--color-green);
+			}
+
+			&.deactivate {
+				color: var(--color-red);
+			}
+
+			&.disabled {
+				color: var(--color-border);
+			}
+		}
+	}
+
+	.sensors {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.standby {
+		color: var(--color-green);
+	}
+
+	.active {
+		color: var(--color-green);
+	}
+
+	.error {
+		color: var(--color-red);
+	}
+
+	.initializing {
+		color: var(--color-blue);
 	}
 }
 </style>

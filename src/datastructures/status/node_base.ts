@@ -271,6 +271,9 @@ export abstract class StardosNode<
 			if (States.is_running_state(this.state.state)) {
 				return Status.RUNNING;
 			}
+			if (this.state.state === -129) {
+				return Status.OFFLINE;
+			}
 			console.warn(`Unknown state: ${this.state.state}`);
 			return Status.ONLINE;
 		})();
@@ -386,5 +389,10 @@ export abstract class StardosNode<
 				return { definition: field, value: 'error decoding data' };
 			}
 		});
+	}
+
+	public mark_as_offline() {
+		this._state.state = -129;
+		this._timestamp = null;
 	}
 }

@@ -1,6 +1,6 @@
 import type { MissionConfiguration } from '@/datastructures/configuration';
 import type { IncomingStatusMessage } from '@/datastructures/status/heartbeats';
-import { Payload } from '@/datastructures/status/payload';
+import { Payload, PayloadState } from '@/datastructures/status/payload';
 import type { Heartbeat, HeartbeatType } from '@/datastructures/status_input';
 import { Notification, NotificationUrgency } from '@/notification';
 import { defineStore } from 'pinia';
@@ -95,5 +95,39 @@ export const usePayloadStore = defineStore({
 				this.payload = new Payload();
 			}
 		},
+		timer_update() {
+			// const payload_active = (() => {
+			// 	switch (this.payload?.state) {
+			// 		case PayloadState.CAPTURING:
+			// 		case PayloadState.STANDBY:
+			// 			return true;
+			// 		default:
+			// 			return false;
+			// 	}
+			// })();
+			const payload_active =
+				this.payload?.state === PayloadState.CAPTURING ||
+				this.payload?.state === PayloadState.STANDBY;
+			this.payload?.capture_groups.forEach((group) => {
+				if (!payload_active && group.time_since_heard > 10000) {
+					// If the mission is not running, assume nodes we haven't heard form are offline.
+					group.mark_as_offline();
+				}
+				group.update_status_code();
+				group.sensors.forEach((sensor) => {
+					sensor.nodes.forEach((node) => {
+						if (!payload_active && node.time_since_heard > 10000) {
+							// If the mission is not running, assume nodes we haven't heard from are offline.
+							node.mark_as_offline();
+						}
+						node.update_status_code();
+					});
+				});
+			});
+		},
 	},
 });
+
+setInterval(() => {
+	usePayloadStore().timer_update();
+}, 500);

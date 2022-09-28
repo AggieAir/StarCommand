@@ -110,13 +110,13 @@ export default defineComponent({
 		<Tabs :tabs="tabs" bottom class="main">
 			<template #overview>
 				<MissionOverview
-					class="monitor-overview"
+					class="view monitor-overview"
 					v-if="payload"
 					:payload="payload"
 				/>
 			</template>
 			<template v-for="[name, group] in capture_groups" #[name] :key="name">
-				<CaptureGroupDetail :capture_group="group" />
+				<CaptureGroupDetail class="view" :capture_group="group" />
 			</template>
 		</Tabs>
 		<Control />
@@ -183,6 +183,11 @@ export default defineComponent({
 
 	.main {
 		flex-grow: 1;
+		max-height: 100%;
+		.view {
+			height: 100%;
+			overflow-y: scroll;
+		}
 	}
 }
 </style>

@@ -16,6 +16,10 @@ export default defineComponent({
 		LED,
 		NodeDataField,
 	},
+	data: () => ({
+		last_update: 0 as number | null,
+		update_interval_id: null as number | null,
+	}),
 	computed: {
 		led_color() {
 			switch (this.node.status_code) {
@@ -66,8 +70,9 @@ export default defineComponent({
 			console.warn(`Undefined state: ${state}`);
 			if (this.error) {
 				return {
-					name: 'Error',
-					description: 'Unknown error',
+					name: `Error code ${this.node.state.state}`,
+					description:
+						'Undocumented error, contact programmer for more information',
 				};
 			}
 			if (this.initializing) {
@@ -87,6 +92,52 @@ export default defineComponent({
 				description: 'Node is waiting for data to process',
 			};
 		},
+		time_since_update() {
+			if (this.last_update === null || isNaN(this.last_update)) {
+				return 'never';
+			} else {
+				return this.format_seconds(Math.round(this.last_update / 1000 - 0.5));
+			}
+		},
+		show_update() {
+			if (this.node.state.state === -129) {
+				// The node is offline, we don't care how long it's been since we know the node
+				// isn't running.
+				return false;
+			} else if (this.last_update === null || isNaN(this.last_update)) {
+				return true;
+			} else {
+				return this.last_update > 5000;
+			}
+		},
+	},
+	mounted() {
+		this.update_interval_id = setInterval(this.update.bind(this), 500);
+	},
+	unmounted() {
+		if (this.update_interval_id !== null) {
+			clearInterval(this.update_interval_id);
+		}
+	},
+	methods: {
+		update() {
+			this.last_update = this.node.time_since_heard ?? null;
+		},
+		format_seconds(seconds: number) {
+			// Format in the form of [HH:]MM:SS
+			const hours = Math.floor(seconds / 3600);
+			const minutes = Math.floor((seconds % 3600) / 60);
+			const seconds_left = seconds % 60;
+
+			const minutes_str = minutes.toString().padStart(2, '0');
+			const seconds_str = seconds_left.toString().padStart(2, '0');
+
+			if (hours > 0) {
+				return `${hours}:${minutes_str}:${seconds_str}`;
+			} else {
+				return `${minutes_str}:${seconds_str}`;
+			}
+		},
 	},
 });
 </script>
@@ -100,11 +151,10 @@ export default defineComponent({
 		<div class="details">
 			<div class="detail">
 				<span class="label">State</span>
-				<span
-					class="value"
-					:title="state.description"
-					:class="{ standby, active: active, error, initializing }"
-					>{{ state.name }}</span
+				<span class="value" :title="state.description">
+					<span :class="{ standby, active, error, initializing }">{{
+						state.name
+					}}</span></span
 				>
 			</div>
 			<div class="detail">
@@ -120,6 +170,10 @@ export default defineComponent({
 				:key="field.definition.name"
 				:data-field="field"
 			/>
+			<div class="detail error" v-if="show_update">
+				<span class="label">Last update</span>
+				<span class="value">{{ time_since_update }}</span>
+			</div>
 		</div>
 	</div>
 </template>
@@ -157,10 +211,6 @@ export default defineComponent({
 				&::after {
 					content: ':';
 				}
-
-				&.active {
-					color: var(--color);
-				}
 			}
 
 			.value {
@@ -168,6 +218,22 @@ export default defineComponent({
 				text-align: right;
 			}
 		}
+	}
+
+	.standby {
+		color: var(--color-green);
+	}
+
+	.active {
+		color: var(--color-green);
+	}
+
+	.error {
+		color: var(--color-red);
+	}
+
+	.initializing {
+		color: var(--color-blue);
 	}
 }
 </style>
