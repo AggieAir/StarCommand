@@ -45,13 +45,19 @@ export const useConfigStore = defineStore({
 					property: keyof MissionConfiguration,
 					new_value: ValueOf<MissionConfiguration>
 				) {
+					if (target[property] === new_value) return true;
 					(target[property] as any) = new_value;
 					that.dirty = true;
 					return true;
 				},
 			});
+			this.dirty = false;
 		},
-		async clone_config(uuid: string): Promise<UUID> {
+		async clone_config(
+			uuid: string,
+			name?: string,
+			date?: string
+		): Promise<UUID> {
 			const db = await Database.get_database();
 			const config = await db.get<MissionConfiguration>(
 				Table.MissionConfiguration,
@@ -59,14 +65,18 @@ export const useConfigStore = defineStore({
 			);
 			const metadata: MissionMetadata = {
 				uuid: generate_uuid(),
-				name: await new Prompt(
-					'New config name',
-					'Please input a name for the new configuration:'
-				).show(),
-				date: await new Prompt(
-					'New mission date',
-					'Please input a date for the new configuration:'
-				).show(),
+				name:
+					name ??
+					(await new Prompt(
+						'New config name',
+						'Please input a name for the new configuration:'
+					).show()),
+				date:
+					date ??
+					(await new Prompt(
+						'New mission date',
+						'Please input a date for the new configuration:'
+					).show()),
 				payload: config.payload,
 				aircraft: config.aircraft?.name ?? 'none',
 			};
@@ -237,6 +247,7 @@ export const useConfigStore = defineStore({
 				Table.MissionConfiguration,
 				this.config
 			);
+			this.dirty = false;
 		},
 	},
 });

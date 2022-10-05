@@ -40,7 +40,7 @@ export type MissionConfiguration = {
 	altitude: number; // Crusing altitude of flight; mainly used to provide warnings
 	date?: string; // Date string representing the day of the mission, ISO-8601 format
 	name: string;
-	uuid: string | undefined; // Used to easily identify the mission when querying payload for its config
+	uuid: string; // Used to easily identify the mission when querying payload for its config
 	capture_groups: CaptureGroupConfiguration[]; // List of CaptureGroupConfiguration objects
 };
 

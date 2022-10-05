@@ -20,37 +20,28 @@ export const PageTree: PageTreeType = {
 };
 
 export function get_parent(name: string) {
-	return find_parent(PageTree, name);
+	return find_parent(PageTree, 'root', name);
 }
 
 function find_parent(
 	tree: PageTreeType | typeof LEAF,
+	tree_name: string,
 	name: string
 ): string | undefined {
 	if (tree === LEAF) {
 		return undefined;
 	}
 	if (name in tree) {
-		return name;
+		return tree_name;
 	}
 	const subpages = Object.keys(tree);
 	const result = subpages.reduce<string | undefined>((result, page) => {
 		if (result !== undefined) return result;
 		const subtree = tree[page];
-		const test = find_parent(subtree, name);
+		const test = find_parent(subtree, page, name);
 		return test;
 	}, undefined);
 	return result;
-}
-
-function page_is_child(
-	tree: PageTreeType | typeof LEAF,
-	name: string
-): boolean {
-	if (tree === LEAF) {
-		return false;
-	}
-	return name in tree;
 }
 
 export function back(router: Router) {

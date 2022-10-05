@@ -12,6 +12,10 @@ export default defineComponent({
 			type: Boolean,
 			default: false,
 		},
+		align_start: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	data: () => ({
 		selected: 0,
@@ -23,7 +27,9 @@ export default defineComponent({
 	},
 	methods: {
 		select(id: number) {
-			this.selected = id % this.tab_count;
+			if (!this.tabs[this.selected].just_emit) {
+				this.selected = id % this.tab_count;
+			}
 			this.$emit('tab:select', this.tabs[this.selected].name);
 		},
 		increment() {
@@ -46,12 +52,13 @@ export default defineComponent({
 export interface TabDefinition {
 	name: string;
 	text: string;
+	just_emit?: boolean;
 }
 </script>
 
 <template>
 	<div class="tabbox">
-		<div class="tab-header" :class="bottom ? 'bottom' : ''">
+		<div class="tab-header" :class="{ bottom, align_start }">
 			<div
 				v-for="({ name, text }, idx) in tabs"
 				:key="name"
@@ -90,6 +97,13 @@ export interface TabDefinition {
 		align-items: center;
 		user-select: none;
 
+		&.align_start {
+			justify-content: flex-start;
+			div {
+				flex-grow: 0;
+			}
+		}
+
 		&.bottom {
 			order: 100;
 		}
@@ -97,7 +111,7 @@ export interface TabDefinition {
 		div {
 			cursor: pointer;
 			flex-grow: 1;
-			padding: 0.25rem;
+			padding: 0.25rem 0.5rem;
 			text-align: center;
 
 			&.selected {
