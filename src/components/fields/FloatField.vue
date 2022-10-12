@@ -25,8 +25,15 @@ export default defineComponent({
 			required: false,
 		},
 	},
+	computed: {
+		valid() {
+			return this.error === null;
+		},
+	},
+	expose: ['valid'],
 	data: () => ({
 		error: null as string | null,
+		value: null as string | null,
 	}),
 	methods: {
 		validate(value: string | number): {
@@ -78,8 +85,8 @@ export default defineComponent({
 	watch: {
 		modelValue: {
 			handler(value: number) {
-				const { value: num } = this.validate(value);
-				this.$emit('update:modelValue', num);
+				this.validate(value);
+				this.value = value?.toString() ?? '';
 			},
 			immediate: true,
 		},
@@ -95,6 +102,7 @@ export default defineComponent({
 		<FieldInput
 			type="text"
 			@change="on_update"
+			v-model="value"
 			:title="error ?? undefined"
 			:class="{ error: error !== null }"
 			ref="input"
@@ -109,10 +117,15 @@ export default defineComponent({
 	padding: 0.25rem;
 	font-size: 0.8rem;
 	align-content: center;
+	gap: 0.5rem;
 
 	.label {
 		flex: 1 0 auto;
 		text-align: left;
+	}
+
+	.field-input {
+		flex: 0 1 14rem;
 	}
 
 	.required {

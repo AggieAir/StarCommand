@@ -109,14 +109,18 @@ export default defineComponent({
 		</div>
 		<Tabs :tabs="tabs" bottom class="main">
 			<template #overview>
-				<MissionOverview
-					class="view monitor-overview"
-					v-if="payload"
-					:payload="payload"
-				/>
+				<KeepAlive>
+					<MissionOverview
+						class="view monitor-overview"
+						v-if="payload"
+						:payload="payload"
+					/>
+				</KeepAlive>
 			</template>
 			<template v-for="[name, group] in capture_groups" #[name] :key="name">
-				<CaptureGroupDetail class="view" :capture_group="group" />
+				<KeepAlive>
+					<CaptureGroupDetail class="view" :capture_group="group" />
+				</KeepAlive>
 			</template>
 		</Tabs>
 		<Control />

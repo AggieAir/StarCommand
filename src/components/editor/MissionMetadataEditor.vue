@@ -20,6 +20,9 @@ export default defineComponent({
 			}
 		},
 		hasAircraft() {
+			if (this.config?.aircraft === undefined) {
+				return false;
+			}
 			return this.aircrafts?.every(
 				(aircraft) => aircraft !== this.config?.aircraft
 			);

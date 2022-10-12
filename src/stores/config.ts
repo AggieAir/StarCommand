@@ -6,8 +6,13 @@ import {
 	type MissionConfiguration,
 	type NodeConfiguration,
 	type SensorConfiguration,
+	check_constraint,
+	type ConfigEntries,
 } from '@/datastructures/configuration';
-import type { NodeDefinition } from '@/datastructures/definition';
+import {
+	ConfigEntryType,
+	type NodeDefinition,
+} from '@/datastructures/definition';
 import type { UUID, ValueOf } from '@/utility_types';
 import { defineStore } from 'pinia';
 import { Prompt } from './prompt';
@@ -16,16 +21,19 @@ export const useConfigStore = defineStore({
 	id: 'config',
 	state: () => ({
 		config: null as MissionConfiguration | null,
+		selected_sensor: undefined as SensorConfiguration | undefined,
 		dirty: false,
+		just_loaded: true,
 	}),
 	actions: {
 		async new_config() {
+			const name = await new Prompt(
+				'New config name',
+				'Please input a name for the new configuration:'
+			).show();
 			this.config = {
 				uuid: generate_uuid(),
-				name: await new Prompt(
-					'New config name',
-					'Please input a name for the new configuration:'
-				).show(),
+				name,
 				payload: '',
 				altitude: 0,
 				capture_groups: [],
@@ -38,19 +46,9 @@ export const useConfigStore = defineStore({
 				Table.MissionConfiguration,
 				uuid
 			);
-			const that = this;
-			this.config = new Proxy<MissionConfiguration>(config, {
-				set(
-					target,
-					property: keyof MissionConfiguration,
-					new_value: ValueOf<MissionConfiguration>
-				) {
-					if (target[property] === new_value) return true;
-					(target[property] as any) = new_value;
-					that.dirty = true;
-					return true;
-				},
-			});
+			this.just_loaded = true;
+			this.config = config;
+			console.log('Flagging config as clean');
 			this.dirty = false;
 		},
 		async clone_config(
@@ -99,10 +97,28 @@ export const useConfigStore = defineStore({
 			group: string,
 			sensor: string,
 			node_name: string
-		): NodeConfiguration | undefined {
-			return this.get_sensor(group, sensor)?.nodes.find(
-				(node) => node.name === node_name
-			);
+		): [
+			NodeConfiguration | undefined, // The node
+			() => NodeConfiguration | undefined, // A function which returns the previous node
+			() => NodeConfiguration | undefined // A function which returns the next node
+		] {
+			return [
+				this.get_sensor(group, sensor)?.nodes.find(
+					(node) => node.name === node_name
+				),
+				() => {
+					const nodes = this.get_sensor(group, sensor)?.nodes;
+					const index = nodes?.findIndex(({ name }) => name === node_name);
+					if (index === undefined) return undefined;
+					return nodes?.[index - 1];
+				},
+				() => {
+					const nodes = this.get_sensor(group, sensor)?.nodes;
+					const index = nodes?.findIndex(({ name }) => name === node_name);
+					if (index === undefined) return undefined;
+					return nodes?.[index + 1];
+				},
+			];
 		},
 		add_capture_group(name: string): CaptureGroupConfiguration | undefined {
 			const group = {
@@ -148,12 +164,18 @@ export const useConfigStore = defineStore({
 					return definition.name;
 				}
 			})();
+			const config = definition.config_entries.reduce<
+				ConfigEntries<string | number | boolean>
+			>((acc, entry) => {
+				acc[entry.name] = entry.default ?? '';
+				return acc;
+			}, {});
 			const node: NodeConfiguration = {
 				name,
 				human_name: definition.human_name,
 				executable: definition.executable,
 				definition,
-				config: {},
+				config,
 			};
 			this.dirty = true;
 			sensor.nodes.push(node);
@@ -233,21 +255,85 @@ export const useConfigStore = defineStore({
 			if (!this.config.uuid) {
 				this.config.uuid = generate_uuid();
 			}
-			if (!metadata) {
-				console.debug('Creating new metadata for mission');
-				await db.save<MissionMetadata>(Table.MissionMetadata, {
-					name: this.config.name,
-					uuid: this.config.uuid,
-					date: this.config.date ?? 'none',
-					payload: this.config.payload,
-					aircraft: this.config.aircraft?.name ?? 'none',
-				});
-			}
+			console.debug('Updating metadata for mission');
+			await db.clobber<MissionMetadata>(Table.MissionMetadata, {
+				name: this.config.name,
+				uuid: this.config.uuid,
+				date: this.config.date ?? 'none',
+				payload: this.config.payload,
+				aircraft: this.config.aircraft?.name ?? 'none',
+			});
+
 			await db.clobber<MissionConfiguration>(
 				Table.MissionConfiguration,
 				this.config
 			);
 			this.dirty = false;
 		},
+		select_sensor(sensor: SensorConfiguration) {
+			this.selected_sensor = sensor;
+		},
+		deselect_sensor() {
+			this.selected_sensor = undefined;
+		},
+		validate_node_config(node: NodeConfiguration): boolean {
+			return Object.entries(node.config).reduce<boolean>(
+				(acc, [field, value]) => {
+					const definition = node.definition.config_entries.find(
+						({ name }) => name === field
+					);
+					// If we can't find the definition, that's a problem. Return false.
+					if (!definition) return false;
+					// Basic checks that are valid for every type
+					if (definition.required && (value === '' || value === undefined)) {
+						// An empty required config is invalid.
+						return false;
+					} else if (value === '' || value === undefined) {
+						// An empty non-required config is valid, inherit previous value.
+						return acc;
+					}
+					// Type-specific checking
+					switch (definition.type) {
+						case ConfigEntryType.INTEGER:
+							const int =
+								typeof value === 'number' ? value : parseInt(value as string);
+							if (isNaN(int)) {
+								// Needs to be a number
+								return false;
+							}
+							if (int !== Math.floor(int)) {
+								// Needs to be an integer
+								return false;
+							}
+						case ConfigEntryType.FLOAT:
+							const float =
+								typeof value === 'number' ? value : parseFloat(value as string);
+							if (isNaN(float)) {
+								// Needs to be a number
+								return false;
+							}
+					}
+					// Constraint validation
+					const constraints =
+						definition.constraints?.reduce<boolean>(
+							(acc, constraint) =>
+								acc &&
+								check_constraint(
+									value,
+									constraint,
+									this.config ?? undefined,
+									node.config
+								),
+							true
+						) ?? true;
+					return acc && constraints;
+				},
+				true
+			);
+		},
 	},
 });
+
+// private functions for validating specific types of config data
+
+export type ConfigStore = ReturnType<typeof useConfigStore>;

@@ -95,6 +95,8 @@ $color-selected-bg: $vt-c-nord6;
   --color-white: var(--vt-c-white);
 
   --section-gap: 160px;
+
+  --color-node-editor: var(--vt-c-nord8);
 }
 
 /* semantic z index variables for this project */
@@ -121,6 +123,8 @@ $color-selected-bg: $vt-c-nord6;
     --color-text: var(--vt-c-text-dark-2);
 
     --color-selected-bg: var(--vt-c-black-mute);
+
+    --color-node-editor: var(--vt-c-nord10);
   }
 }
 

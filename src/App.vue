@@ -12,11 +12,30 @@ import { useContextMenu } from './stores/context';
 import AlertBox from './components/widgets/AlertBox.vue';
 import PromptBox from './components/widgets/PromptBox.vue';
 import { back } from './pagetree';
+import { useConfigStore } from './stores/config';
 
 export default defineComponent({
 	computed: {
 		router_visible(): boolean {
 			return this.$route.name !== 'home';
+		},
+		current_config() {
+			return useConfigStore().config;
+		},
+	},
+	watch: {
+		current_config: {
+			handler() {
+				const store = useConfigStore();
+				if (store.just_loaded) {
+					// Don't mark as dirty immediately after a load.
+					store.just_loaded = false;
+					return;
+				}
+				useConfigStore().dirty = true;
+				console.log('Flagging config as dirty');
+			},
+			deep: true,
 		},
 	},
 	data: () => ({}),

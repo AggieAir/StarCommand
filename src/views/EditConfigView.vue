@@ -11,6 +11,7 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import FieldInput from '../components/fields/FieldInput.vue';
 import MissionMetadataEditor from '../components/editor/MissionMetadataEditor.vue';
 import NodeLists from '../components/editor/node_selector/NodeLists.vue';
+import CaptureGroupsEditor from '../components/editor/capture_groups/CaptureGroupsEditor.vue';
 
 export default defineComponent({
 	props: {
@@ -33,13 +34,6 @@ export default defineComponent({
 				}
 			},
 		},
-	},
-	mounted() {
-		if (this.uuid === undefined) {
-			useConfigStore().new_config();
-		} else {
-			useConfigStore().load_config(this.uuid);
-		}
 	},
 	methods: {
 		async save() {
@@ -118,7 +112,22 @@ export default defineComponent({
 	async beforeRouteUpdate() {
 		return await this.prompt_for_save();
 	},
-	components: { FieldInput, MissionMetadataEditor, NodeLists },
+	async beforeRouteEnter(to) {
+		// Do all of this stuff before we load the component
+		const uuid = to.params.uuid as string | undefined;
+		console.log(uuid);
+		if (uuid === undefined) {
+			await useConfigStore().new_config();
+		} else {
+			await useConfigStore().load_config(uuid);
+		}
+	},
+	components: {
+		FieldInput,
+		MissionMetadataEditor,
+		NodeLists,
+		CaptureGroupsEditor,
+	},
 });
 </script>
 
@@ -133,12 +142,15 @@ export default defineComponent({
 		</div>
 		<MissionMetadataEditor />
 		<NodeLists />
+		<CaptureGroupsEditor />
 	</div>
 </template>
 
 <style lang="scss" scoped>
 .config-editor-view {
 	min-width: 60rem;
+	max-width: 60rem;
+	max-height: 45rem;
 	.header {
 		.name {
 			text-align: center;

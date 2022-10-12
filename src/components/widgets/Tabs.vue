@@ -16,6 +16,10 @@ export default defineComponent({
 			type: Boolean,
 			default: false,
 		},
+		scrolling_tabbar: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	data: () => ({
 		selected: 0,
@@ -27,10 +31,12 @@ export default defineComponent({
 	},
 	methods: {
 		select(id: number) {
-			if (!this.tabs[this.selected].just_emit) {
-				this.selected = id % this.tab_count;
+			console.log(`selected tab ${id}`);
+			if (!this.tabs[id].just_emit) {
+				this.selected = id;
 			}
-			this.$emit('tab:select', this.tabs[this.selected].name);
+			console.debug(`emitting event tab:select("${this.tabs[id].name}")`);
+			this.$emit('tab:select', this.tabs[id].name);
 		},
 		increment() {
 			const new_selected = this.selected + 1;
@@ -39,6 +45,19 @@ export default defineComponent({
 		decrement() {
 			const new_selected = this.selected - 1;
 			this.selected = new_selected % this.tab_count;
+		},
+	},
+	watch: {
+		tabs: {
+			handler() {
+				if (this.tabs[this.selected]?.just_emit) {
+					// No selecting the only tab
+					this.selected = -1;
+				} else if (this.selected === -1) {
+					this.selected = this.tabs.findIndex(({ just_emit }) => !just_emit);
+				}
+			},
+			immediate: true,
 		},
 	},
 	emits: {
@@ -50,23 +69,29 @@ export default defineComponent({
 });
 
 export interface TabDefinition {
+	/**
+	 * The name to refer to this tab with in code.
+	 */
 	name: string;
+	/**
+	 * The text that will be displayed on the tab
+	 */
 	text: string;
+	/**
+	 * Just emit a 'select' event when this tab is clicked, don't show anything else.
+	 */
 	just_emit?: boolean;
 }
 </script>
 
 <template>
 	<div class="tabbox">
-		<div class="tab-header" :class="{ bottom, align_start }">
+		<div class="tab-header" :class="{ bottom, align_start, scrolling_tabbar }">
 			<div
 				v-for="({ name, text }, idx) in tabs"
 				:key="name"
 				:class="{ selected: selected === idx }"
-				@click.stop="
-					select(idx);
-					$emit('tab:select', name);
-				"
+				@click.stop="select(idx)"
 				@click.right.stop.prevent="$emit('click:right', name)"
 				@click.middle.stop="$emit('click:middle', name)"
 			>
@@ -102,6 +127,10 @@ export interface TabDefinition {
 			div {
 				flex-grow: 0;
 			}
+		}
+
+		&.scrolling_tabbar {
+			overflow-x: scroll;
 		}
 
 		&.bottom {

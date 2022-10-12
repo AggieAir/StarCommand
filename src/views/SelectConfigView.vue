@@ -28,8 +28,8 @@ export default defineComponent({
 			const db = await Database.get_database();
 			const missions = await db.get_all<MissionMetadata>(Table.MissionMetadata);
 			this.missions = [...missions].sort((a, b) => {
-				if (a.date < b.date) return -1;
-				if (a.date > b.date) return 1;
+				if (a.date < b.date) return 1;
+				if (a.date > b.date) return -1;
 				return 0;
 			});
 			this.loaded = true;
@@ -43,7 +43,7 @@ export default defineComponent({
 				.split('T')[0];
 		},
 		async load(metadata: MissionMetadata) {
-			if (metadata.date ?? EPOCH < this.today()) {
+			if (metadata.date < this.today()) {
 				const result = await useAlert().open({
 					title: 'Old Mission Configuration',
 					message:
@@ -99,6 +99,42 @@ export default defineComponent({
 	<div class="config-loader">
 		<div class="header">Select a Config to Edit</div>
 		<Button @click="new_config">Create a New Config</Button>
-		<MissionList v-if="loaded" :missions="missions" @open="load" />
+		<MissionList v-if="loaded" :missions="missions" @open="load" startOpen />
 	</div>
 </template>
+
+<style scoped lang="scss">
+.config-loader {
+	width: 300px;
+	text-align: center;
+	user-select: none;
+
+	.header {
+		font-size: 1.5rem;
+		margin-bottom: 0.75rem;
+		font-weight: bold;
+
+		&::after {
+			content: '';
+			display: block;
+			border-bottom: 1px solid var(--color-border);
+			width: 8rem;
+			margin: 0 auto;
+			margin-top: 0.25rem;
+		}
+	}
+
+	.button {
+		font-size: 1rem;
+		padding: 0.5rem;
+		border: 1px solid var(--color-border);
+		width: 80%;
+		margin: 0 auto;
+
+		&:hover {
+			background-color: var(--color-background-soft);
+			border-color: var(--color-border-hover);
+		}
+	}
+}
+</style>

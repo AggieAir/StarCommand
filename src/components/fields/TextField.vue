@@ -32,7 +32,14 @@ export default defineComponent({
 		error: null as string | null,
 		// Used to link the input to a datalist element.
 		id: `text-field-${uid++}`,
+		value: null as string | null,
 	}),
+	computed: {
+		valid() {
+			return this.error === null;
+		},
+	},
+	expose: ['valid'],
 	methods: {
 		validate(value: string): {
 			value: undefined | string;
@@ -71,15 +78,16 @@ export default defineComponent({
 		},
 		on_update(event: Event) {
 			const { value } = event.target as HTMLInputElement;
-			const { value: num } = this.validate(value);
-			this.$emit('update:modelValue', num);
+			const { value: result } = this.validate(value);
+			console.log(`${value} => ${result}`);
+			this.$emit('update:modelValue', result);
 		},
 	},
 	watch: {
 		modelValue: {
 			handler(value: string) {
 				this.validate(value); // This will update the error message.
-				(this.$refs.input as HTMLInputElement).value = value;
+				this.value = value;
 			},
 			immediate: true,
 		},
@@ -95,6 +103,7 @@ export default defineComponent({
 		<input
 			type="text"
 			@change="on_update"
+			:value="value"
 			:title="error ?? undefined"
 			:class="{ error: error !== null }"
 			:list="id"
@@ -117,6 +126,7 @@ export default defineComponent({
 	padding: 0.25rem;
 	font-size: 0.8rem;
 	align-content: center;
+	gap: 0.5rem;
 
 	.label {
 		flex: 1 0 auto;
@@ -129,6 +139,7 @@ export default defineComponent({
 		color: var(--color-text);
 		text-align: right;
 		appearance: textfield;
+		flex: 0 1 14rem;
 
 		&:hover {
 			background-color: var(--color-background-mute);

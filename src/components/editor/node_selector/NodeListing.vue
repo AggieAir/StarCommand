@@ -25,8 +25,8 @@ export default defineComponent({
 	<div class="node-listing">
 		<div class="header">
 			<span class="name">{{ definition.human_name }}</span>
-			<span class="input" v-if="takes_input">
-				input: {{ definition.input_type }}
+			<span class="input">
+				input: {{ takes_input ? definition.input_type : 'none' }}
 			</span>
 			<span class="output" v-if="makes_output">
 				output: {{ definition.output_type }}
@@ -43,7 +43,20 @@ export default defineComponent({
 	display: flex;
 	flex-direction: column;
 	font-size: 0.8rem;
-	gap: 1em;
+	gap: 0.25em;
+	// padding: 0.25rem;
+
+	&:not(:last-child)::after {
+		content: '';
+		border-bottom: 1px solid var(--color-border);
+		width: 80%;
+		margin: 0 auto;
+		margin-top: 0.5rem;
+	}
+
+	&:hover {
+		background-color: var(--color-background-soft);
+	}
 
 	.header {
 		display: grid;
@@ -53,9 +66,11 @@ export default defineComponent({
 			'name input'
 			'name output';
 
+		align-items: center;
+
 		.name {
 			font-weight: bold;
-			font-size: 1.4em;
+			font-size: 1.2em;
 			grid-area: name;
 		}
 
@@ -72,6 +87,9 @@ export default defineComponent({
 
 	.description {
 		word-wrap: break-word;
+		position: relative;
+		width: auto;
+		overflow-x: hidden;
 	}
 }
 </style>

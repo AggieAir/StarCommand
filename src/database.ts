@@ -110,13 +110,23 @@ export async function import_file(
 	file: File,
 	database: Database
 ): Promise<void | void[]> {
-	return new Promise<ExportFile>((resolve, reject) => {
+	return new Promise<string>((resolve, reject) => {
 		const reader = new FileReader();
-		reader.onload = (event) =>
-			resolve(JSON.parse(event.target?.result as string));
+		reader.onload = (event) => resolve(event.target?.result as string);
 		reader.onerror = (event) => reject(event);
 		reader.readAsText(file);
-	}).then((obj) => database.save_from_file(obj));
+	})
+		.then(
+			(data) =>
+				new Promise<ExportFile>((resolve, reject) => {
+					try {
+						resolve(JSON.parse(data));
+					} catch (e) {
+						reject(e);
+					}
+				})
+		)
+		.then((obj) => database.save_from_file(obj));
 }
 
 export async function parse_file(file: File): Promise<ExportFile> {
