@@ -318,7 +318,7 @@ export default class Database {
 			});
 			return this.clobber(Table.MissionConfiguration, data);
 		}
-		return this.save(object.type, object.content);
+		return this.clobber(object.type, object.content);
 	}
 
 	save<DataType>(table: Table, data: DataType): Promise<void> {

@@ -25,7 +25,7 @@ export default defineComponent({
 		},
 	},
 	components: { MissionListEntry },
-	emits: ['open'],
+	emits: ['open', 'reload'],
 });
 </script>
 
@@ -37,6 +37,7 @@ export default defineComponent({
 		<div v-if="missions.length > 0 && expanded" class="body">
 			<MissionListEntry
 				@open="$emit('open', $event)"
+				@reload="$emit('reload', $event)"
 				v-for="mission in missions"
 				:key="mission.uuid"
 				:metadata="mission"

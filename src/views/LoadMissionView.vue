@@ -138,16 +138,33 @@ export default defineComponent({
 		<div class="header">Load a Mission</div>
 		<div class="button" @click="select_file">Import a mission</div>
 		<template v-if="loaded">
-			<MissionList :missions="todays_missions" start-open @open="load">
+			<MissionList
+				:missions="todays_missions"
+				start-open
+				@open="load"
+				@reload="load_missions"
+			>
 				Today's Missions
 			</MissionList>
-			<MissionList :missions="undated_missions" @open="load">
+			<MissionList
+				:missions="undated_missions"
+				@open="load"
+				@reload="load_missions"
+			>
 				Undated Missions
 			</MissionList>
-			<MissionList :missions="future_missions" @open="load">
+			<MissionList
+				:missions="future_missions"
+				@open="load"
+				@reload="load_missions"
+			>
 				Future Missions
 			</MissionList>
-			<MissionList :missions="past_missions" @open="load">
+			<MissionList
+				:missions="past_missions"
+				@open="load"
+				@reload="load_missions"
+			>
 				Past Missions
 			</MissionList>
 		</template>

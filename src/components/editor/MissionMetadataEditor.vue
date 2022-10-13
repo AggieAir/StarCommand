@@ -46,18 +46,18 @@ export default defineComponent({
 		this.aircrafts = await db.get_all<AircraftDefinition>(
 			Table.AircraftDefinition
 		);
-		this.aircrafts = [
-			{
-				name: 'Phoenix',
-				platform: 'GreatBlue',
-				copilot_installed: true,
-				avionics: {
-					name: 'MAVLink',
-					description: 'MAVLink',
-					copilot_executables: [],
-				},
-			},
-		];
+		// this.aircrafts = [
+		// 	{
+		// 		name: 'Phoenix',
+		// 		platform: 'GreatBlue',
+		// 		copilot_installed: true,
+		// 		avionics: {
+		// 			name: 'MAVLink',
+		// 			description: 'MAVLink',
+		// 			copilot_executables: [],
+		// 		},
+		// 	},
+		// ];
 	},
 	methods: {
 		fixAltitude(input: string) {

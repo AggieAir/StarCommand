@@ -12,6 +12,8 @@ import FieldInput from '../components/fields/FieldInput.vue';
 import MissionMetadataEditor from '../components/editor/MissionMetadataEditor.vue';
 import NodeLists from '../components/editor/node_selector/NodeLists.vue';
 import CaptureGroupsEditor from '../components/editor/capture_groups/CaptureGroupsEditor.vue';
+import Button from '../components/widgets/Button.vue';
+import { Notification, NotificationUrgency } from '@/notification';
 
 export default defineComponent({
 	props: {
@@ -38,6 +40,13 @@ export default defineComponent({
 	methods: {
 		async save() {
 			await useConfigStore().save_config();
+			useNotifications().show(
+				new Notification(
+					'Config saved',
+					'Config was saved successfully',
+					NotificationUrgency.LOW
+				)
+			);
 		},
 		async prompt_for_save() {
 			if (!useConfigStore().dirty) {
@@ -127,6 +136,7 @@ export default defineComponent({
 		MissionMetadataEditor,
 		NodeLists,
 		CaptureGroupsEditor,
+		Button,
 	},
 });
 </script>
@@ -143,6 +153,7 @@ export default defineComponent({
 		<MissionMetadataEditor />
 		<NodeLists />
 		<CaptureGroupsEditor />
+		<Button class="save" @click="save">Save Changes</Button>
 	</div>
 </template>
 
@@ -150,7 +161,7 @@ export default defineComponent({
 .config-editor-view {
 	min-width: 60rem;
 	max-width: 60rem;
-	max-height: 45rem;
+	max-height: 48rem;
 	.header {
 		.name {
 			text-align: center;
@@ -170,5 +181,12 @@ export default defineComponent({
 	grid-template-columns: 1fr 3fr;
 	gap: 1rem;
 	user-select: none;
+
+	.save {
+		font-size: 1.2rem;
+		grid-column: 1 / span 2;
+		text-align: center;
+		color: var(--color-green);
+	}
 }
 </style>

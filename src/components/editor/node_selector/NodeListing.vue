@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { NodeDefinition } from '@/datastructures/definition';
+import { useConfigStore } from '@/stores/config';
 import { defineComponent, type PropType } from 'vue';
 
 export default defineComponent({
@@ -9,7 +10,6 @@ export default defineComponent({
 			required: true,
 		},
 	},
-	emits: ['selected'],
 	computed: {
 		takes_input(): boolean {
 			return this.definition.input_type !== '';
@@ -18,11 +18,20 @@ export default defineComponent({
 			return this.definition.output_type !== '';
 		},
 	},
+	methods: {
+		add_to_sensor() {
+			const store = useConfigStore();
+			if (!store.selected_sensor) {
+				return;
+			}
+			store.add_node(this.definition, store.selected_sensor);
+		},
+	},
 });
 </script>
 
 <template>
-	<div class="node-listing">
+	<div class="node-listing" @click="add_to_sensor">
 		<div class="header">
 			<span class="name">{{ definition.human_name }}</span>
 			<span class="input">

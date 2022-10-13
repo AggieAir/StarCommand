@@ -66,7 +66,7 @@ export default defineComponent({
 
 		.context-menu-item {
 			cursor: pointer;
-			padding: 0.25rem;
+			padding: 0.25rem 0.75rem;
 			text-align: center;
 			user-select: none;
 			background-color: var(--color-background-soft);

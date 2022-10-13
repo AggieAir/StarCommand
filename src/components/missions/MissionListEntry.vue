@@ -1,5 +1,10 @@
 <script lang="ts">
-import type { MissionMetadata } from '@/datastructures/configuration';
+import Database, { export_stored_object, Table } from '@/database';
+import type {
+	MissionConfiguration,
+	MissionMetadata,
+} from '@/datastructures/configuration';
+import { Alert, useAlert } from '@/stores/alert';
 import { useContextMenu } from '@/stores/context';
 import { defineComponent, type PropType } from 'vue';
 
@@ -13,7 +18,7 @@ export default defineComponent({
 	data: () => ({
 		context_menu_data: [
 			{
-				label: 'Edit',
+				label: 'Export',
 			},
 			{
 				label: 'Delete',
@@ -36,22 +41,47 @@ export default defineComponent({
 			const result = await context_menu.open(this.context_menu_data, position);
 			switch (result) {
 				case 0:
-					this.$emit('edit', this.metadata);
+					const db = await Database.get_database();
+					export_stored_object(
+						await db.get<MissionConfiguration>(
+							Table.MissionConfiguration,
+							this.metadata.uuid
+						),
+						Table.MissionConfiguration
+					);
 					break;
 				case 1:
-					this.$emit('delete', this.metadata);
+					const response = await new Alert(
+						`Delete ${this.metadata.name}?`,
+						'Really delete this config? This operation is irreversible.',
+						[
+							{
+								label: 'No',
+							},
+							{
+								label: 'Yes',
+								dangerous: true,
+							},
+						]
+					).show();
+					if (response === 1) {
+						const db = await Database.get_database();
+						await db.delete(Table.MissionMetadata, this.metadata.name);
+						await db.delete(Table.MissionConfiguration, this.metadata.uuid);
+						this.$emit('reload');
+					}
 					break;
 			}
 		},
 	},
-	emits: ['open', 'edit', 'delete'],
+	emits: ['open', 'reload'],
 });
 </script>
 
 <template>
 	<div
 		class="list-entry"
-		@click.right.stop="openContextMenu"
+		@click.right.stop.prevent="openContextMenu"
 		@click="$emit('open', metadata)"
 		:title="description"
 	>

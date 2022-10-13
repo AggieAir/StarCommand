@@ -99,7 +99,13 @@ export default defineComponent({
 	<div class="config-loader">
 		<div class="header">Select a Config to Edit</div>
 		<Button @click="new_config">Create a New Config</Button>
-		<MissionList v-if="loaded" :missions="missions" @open="load" startOpen />
+		<MissionList
+			v-if="loaded"
+			:missions="missions"
+			@open="load"
+			startOpen
+			@reload="load_missions"
+		/>
 	</div>
 </template>
 
