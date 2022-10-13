@@ -11,7 +11,7 @@ import { defineComponent, type PropType } from 'vue';
 export default defineComponent({
 	props: {
 		modelValue: {
-			type: Number,
+			type: [Number, String],
 		},
 		definition: {
 			type: Object as PropType<ConfigEntryDefinition>,

@@ -12,7 +12,7 @@ import FieldInput from './FieldInput.vue';
 export default defineComponent({
 	props: {
 		modelValue: {
-			type: Number,
+			type: [Number, String],
 		},
 		definition: {
 			type: Object as PropType<ConfigEntryDefinition>,

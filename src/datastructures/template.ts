@@ -54,7 +54,7 @@ function aircraft_compatible(
 	let result = true;
 	result &&= definition.avionics.name === template!.avionics.name;
 	result &&= definition.platform === template!.platform;
-	result &&= definition.copilot_installed === template!.copilot_installed;
+	result &&= definition.has_copilot === template!.copilot_installed;
 	return result;
 }
 

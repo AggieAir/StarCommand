@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { usePrompt } from '@/stores/prompt';
-import { ref, computed } from 'vue';
+import {
+	ref,
+	computed,
+	watch,
+	type Ref,
+	type ComponentPublicInstance,
+} from 'vue';
 import Modal from './Modal.vue';
 import FieldInput from '../fields/FieldInput.vue';
 import Button from './Button.vue';
@@ -9,12 +15,19 @@ const prompt = usePrompt();
 
 const text = ref('');
 
-const type = computed;
+const type = computed(() => {
+	prompt.data.type ?? 'text';
+});
 
 function submit() {
 	const result = text.value;
 	text.value = '';
 	prompt.close(result);
+}
+
+function cancel() {
+	text.value = '';
+	prompt.close(undefined);
 }
 </script>
 
@@ -28,6 +41,9 @@ function submit() {
 				v-model="text"
 				size="26"
 				@keyup.enter="submit()"
+				@keyup.escape.stop="cancel()"
+				:type="type"
+				auto-focus
 			/>
 			<Button @click="submit()">Submit</Button>
 		</div>

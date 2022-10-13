@@ -86,6 +86,7 @@ export default defineComponent({
 	.origin {
 		color: var(--color-text);
 		user-select: none;
+		flex-shrink: 0;
 	}
 
 	.message {

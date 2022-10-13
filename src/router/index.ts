@@ -40,8 +40,7 @@ const router = createRouter({
 		{
 			path: '/database',
 			name: 'database',
-			// component: () => import('../views/DatabaseView.vue')
-			component: HomeView,
+			component: () => import('../views/DatabaseView.vue'),
 		},
 		{
 			path: '/logs',

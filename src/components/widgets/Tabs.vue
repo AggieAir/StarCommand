@@ -130,7 +130,7 @@ export interface TabDefinition {
 		}
 
 		&.scrolling_tabbar {
-			overflow-x: scroll;
+			flex-wrap: wrap;
 		}
 
 		&.bottom {

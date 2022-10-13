@@ -68,6 +68,10 @@ export default defineComponent({
 								case ConfigEntryType.BOOLEAN:
 									acc[def.name] = false;
 									break;
+								case ConfigEntryType.INTEGER:
+								case ConfigEntryType.FLOAT:
+									acc[def.name] = 0;
+									break;
 								default:
 									acc[def.name] = '';
 							}

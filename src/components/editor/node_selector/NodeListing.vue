@@ -35,7 +35,7 @@ export default defineComponent({
 		<div class="header">
 			<span class="name">{{ definition.human_name }}</span>
 			<span class="input">
-				input: {{ takes_input ? definition.input_type : 'none' }}
+				input: {{ takes_input ? definition.input_type : 'sensor' }}
 			</span>
 			<span class="output" v-if="makes_output">
 				output: {{ definition.output_type }}
@@ -85,12 +85,16 @@ export default defineComponent({
 
 		.input {
 			font-size: 0.7em;
+			padding-left: 0.5em;
 			grid-area: input;
+			align-self: flex-end;
 		}
 
 		.output {
+			align-self: flex-start;
 			font-size: 0.7em;
 			grid-area: output;
+			padding-left: 0.5em;
 		}
 	}
 

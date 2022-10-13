@@ -168,7 +168,7 @@ export class Payload {
 		}
 		this._payload_computer = new Computer(_config.payload);
 		if (
-			_config.aircraft?.copilot_installed ??
+			_config.aircraft?.has_copilot ??
 			(_config.aircraft as any)?.has_copilot
 		) {
 			this._copilot_computer = new Computer(

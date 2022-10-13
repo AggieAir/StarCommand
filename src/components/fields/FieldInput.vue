@@ -6,7 +6,7 @@
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-	props: ['modelValue'],
+	props: ['modelValue', 'autoFocus'],
 	emits: ['update:modelValue'],
 	methods: {
 		update(event: Event) {
@@ -14,6 +14,9 @@ export default defineComponent({
 				'update:modelValue',
 				(event.target! as HTMLInputElement).value
 			);
+		},
+		focus() {
+			(this.$refs.input as HTMLInputElement).focus();
 		},
 	},
 	watch: {
@@ -25,6 +28,9 @@ export default defineComponent({
 	},
 	mounted() {
 		(this.$refs.input as HTMLInputElement).value = this.modelValue;
+		if (this.autoFocus) {
+			this.focus();
+		}
 	},
 });
 </script>

@@ -217,7 +217,7 @@ export type AircraftDefinition = {
 	name: string;
 	platform: string;
 	avionics: AvionicsDefinition;
-	copilot_installed: boolean;
+	has_copilot: boolean;
 };
 
 export type DatabaseDefinition =

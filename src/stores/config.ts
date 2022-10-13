@@ -167,7 +167,22 @@ export const useConfigStore = defineStore({
 			const config = definition.config_entries.reduce<
 				ConfigEntries<string | number | boolean>
 			>((acc, entry) => {
-				acc[entry.name] = entry.default ?? '';
+				// acc[entry.name] = entry.default ?? '';
+				if (entry.default !== undefined) {
+					acc[entry.name] = entry.default;
+					return acc;
+				}
+				switch (entry.type) {
+					// case ConfigEntryType.INTEGER:
+					// case ConfigEntryType.FLOAT:
+					// 	acc[entry.name] = 0;
+					// 	break;
+					case ConfigEntryType.BOOLEAN:
+						acc[entry.name] = false;
+						break;
+					default:
+						acc[entry.type] = '';
+				}
 				return acc;
 			}, {});
 			const node: NodeConfiguration = {

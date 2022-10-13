@@ -21,18 +21,24 @@ export const usePrompt = defineStore({
 			message: "You shouldn't see this unless you're debugging",
 		} as PromptDef,
 		resolve: null as ((value: string) => void) | null,
+		reject: null as (() => void) | null,
 	}),
 	actions: {
 		async open(data: PromptDef): Promise<string> {
-			return new Promise((resolve) => {
+			return new Promise((resolve, reject) => {
 				this.data = data;
 				this.resolve = resolve;
+				this.reject = reject;
 				this.is_open = true;
 			});
 		},
-		close(value: string) {
+		close(value?: string) {
 			this.is_open = false;
-			this.resolve?.(value);
+			if (value === undefined) {
+				this.reject?.();
+			} else {
+				this.resolve?.(value);
+			}
 		},
 	},
 });
