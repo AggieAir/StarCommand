@@ -15,6 +15,10 @@ export class ProcessingNode extends StardosNode<
 	}
 
 	protected parse_config(): void {
-		// nothing to do
+		// Sensor nodes don't have input queues, they reject requests they
+		// are not ready to perform.
+		if (this.config?.definition.input_type === '') {
+			this._has_queue = false;
+		}
 	}
 }

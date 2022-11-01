@@ -8,9 +8,9 @@ export interface Heartbeat {
 	 */
 	state: number;
 	/**
-	 * A 24-bit bitmask representing the node's warnings, as 3 uint8_t values.
+	 * A 32-bit bitmask representing the node's warnings.
 	 */
-	warnings: number[];
+	errors: number;
 	/**
 	 * A 16-bit integer representing the number of requests the node has received.
 	 * This is incremented each time a request is sent to the node. In some extreme
@@ -24,7 +24,18 @@ export interface Heartbeat {
 	 */
 	failures: number;
 	/**
-	 * 64 bits of data, for use by the node.
+	 * The duration in milliseconds of the node's most recent successful operation.
+	 * Initializes to 0.
+	 */
+	performance: number;
+	/**
+	 * The number of processing requests in this node's processing queue, if such a
+	 * queue exists. If this is anything other than 0 or 1, the node is running too
+	 * slowly.
+	 */
+	queue_length: number;
+	/**
+	 * 128 bits of data, for use by the node.
 	 * Individual fields are defined by the node's definition.
 	 */
 	data: ArrayBuffer;

@@ -19,7 +19,7 @@ export interface NodeState {
 	 * The warning bits set, extracted from a bitmask into an array of booleans.
 	 * The index of the array corresponds to the bit number.
 	 */
-	warnings: boolean[];
+	errors: boolean[];
 	/**
 	 * The number of requests the node has received.
 	 */
@@ -28,6 +28,18 @@ export interface NodeState {
 	 * The number of requests the node has failed to complete.
 	 */
 	failures: number;
+	/**
+	 * The duration in milliseconds of the node's most recent successful operation.
+	 * Initializes to 0. This must consistently be less than the cadence of the capture
+	 * group the node is in, or it represents a bottleneck.
+	 */
+	performance: number;
+	/**
+	 * The number of processing requests in this node's processing queue, if such a
+	 * queue exists. If this is anything other than 0 or 1, the node is a bottleneck
+	 * on the pipeline.
+	 */
+	queue_length: number;
 	/**
 	 * The node-specific heartbeat data (if any), decoded.
 	 * If no definition exists for the node, this will be an empty array
@@ -121,9 +133,14 @@ export abstract class StardosNode<
 > {
 	protected config?: ConfigType;
 	protected _definition?: DefinitionType;
+	protected _has_queue: boolean = true;
 
 	public get definition(): Readonly<DefinitionType> | undefined {
 		return this._definition;
+	}
+
+	public get has_queue(): boolean {
+		return this._has_queue;
 	}
 
 	public get configured(): boolean {
@@ -144,9 +161,11 @@ export abstract class StardosNode<
 
 	private _state: NodeState = {
 		state: -129,
-		warnings: new Array(24).fill(false),
+		errors: new Array(24).fill(false),
 		requests: 0,
 		failures: 0,
+		performance: 0,
+		queue_length: 0,
 		data: [],
 	};
 
@@ -246,6 +265,17 @@ export abstract class StardosNode<
 			return Status.ONLINE;
 		})();
 
+		// The status code when only considering the queue length.
+		const queue_length_status = (() => {
+			if (this._state.queue_length === 1) {
+				return Status.WARNING;
+			}
+			if (this._state.queue_length > 1) {
+				return Status.ERROR;
+			}
+			return Status.ONLINE;
+		})();
+
 		// The status code when only considering the warning bits.
 		const warnings_status = (() => {
 			if (this.error_bit_set()) {
@@ -295,6 +325,7 @@ export abstract class StardosNode<
 		// Get the highest status code.
 		this._status_code = Math.max(
 			update_time_status,
+			queue_length_status,
 			warnings_status,
 			state_status,
 			failures_status
@@ -303,7 +334,7 @@ export abstract class StardosNode<
 	}
 
 	get errors(): number[] | NodeErrorDefinition[] {
-		const set_bits = this.state.warnings
+		const set_bits = this.state.errors
 			.map((bit, index) => (bit ? index : -1))
 			.filter((x) => x >= 0);
 		if (!this._definition) {
@@ -322,7 +353,7 @@ export abstract class StardosNode<
 			// We are assuming that every undefined bit is an error, so we can just return an empty array.
 			return [];
 		}
-		return this.state.warnings
+		return this.state.errors
 			.map((bit, index) => (bit ? index : -1))
 			.filter((x) => x >= 0)
 			.map((bit) => this._definition!.errors[bit])
@@ -330,7 +361,7 @@ export abstract class StardosNode<
 	}
 
 	public error_bit_set(): boolean {
-		const set_bits = this.state.warnings
+		const set_bits = this.state.errors
 			.map((bit, index) => (bit ? index : -1))
 			.filter((x) => x >= 0);
 		if (!this._definition) {
@@ -344,7 +375,7 @@ export abstract class StardosNode<
 	}
 
 	public warning_bit_set(): boolean {
-		return this.state.warnings
+		return this.state.errors
 			.map((bit, index) => (bit ? index : -1))
 			.filter((x) => x >= 0)
 			.some(
@@ -354,10 +385,8 @@ export abstract class StardosNode<
 
 	public parse_heartbeat(heartbeat: Heartbeat) {
 		this._state.state = heartbeat.state;
-		const warning_num = heartbeat.warnings.reduce((acc, x, idx) => {
-			return (acc + x) << (idx * 8);
-		}, 0);
-		this._state.warnings = (() => {
+		const warning_num = heartbeat.errors;
+		this._state.errors = (() => {
 			const bits = ([] as boolean[])
 				.fill(false, 0, 32)
 				.map((_, idx) => (warning_num & (1 << idx)) > 0);
@@ -365,6 +394,8 @@ export abstract class StardosNode<
 		})();
 		this._state.requests = heartbeat.requests;
 		this._state.failures = heartbeat.failures;
+		this._state.performance = heartbeat.performance;
+		this._state.queue_length = heartbeat.queue_length;
 		this._state.data = this.parse_data(heartbeat.data);
 		this.update_status_code();
 		this._online = true;

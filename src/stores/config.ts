@@ -291,60 +291,61 @@ export const useConfigStore = defineStore({
 		deselect_sensor() {
 			this.selected_sensor = undefined;
 		},
-		validate_node_config(node: NodeConfiguration): boolean {
-			return Object.entries(node.config).reduce<boolean>(
-				(acc, [field, value]) => {
-					const definition = node.definition.config_entries.find(
-						({ name }) => name === field
-					);
-					// If we can't find the definition, that's a problem. Return false.
-					if (!definition) return false;
-					// Basic checks that are valid for every type
-					if (definition.required && (value === '' || value === undefined)) {
-						// An empty required config is invalid.
-						return false;
-					} else if (value === '' || value === undefined) {
-						// An empty non-required config is valid, inherit previous value.
-						return acc;
-					}
-					// Type-specific checking
-					switch (definition.type) {
-						case ConfigEntryType.INTEGER:
-							const int =
-								typeof value === 'number' ? value : parseInt(value as string);
-							if (isNaN(int)) {
-								// Needs to be a number
-								return false;
-							}
-							if (int !== Math.floor(int)) {
-								// Needs to be an integer
-								return false;
-							}
-						case ConfigEntryType.FLOAT:
-							const float =
-								typeof value === 'number' ? value : parseFloat(value as string);
-							if (isNaN(float)) {
-								// Needs to be a number
-								return false;
-							}
-					}
-					// Constraint validation
-					const constraints =
-						definition.constraints?.reduce<boolean>(
-							(acc, constraint) =>
-								acc &&
-								check_constraint(
-									value,
-									constraint,
-									this.config ?? undefined,
-									node.config
-								),
-							true
-						) ?? true;
-					return acc && constraints;
-				},
-				true
-			);
+		validate_node_config(node: NodeConfiguration): boolean[] {
+			return Object.entries(node.config).map<boolean>(([field, value]) => {
+				const definition = node.definition.config_entries.find(
+					({ name }) => name === field
+				);
+				// If we can't find the definition, that's a problem. Return false.
+				if (!definition) return false;
+				// Booleans are always valid
+				if (definition.type === ConfigEntryType.BOOLEAN) {
+					return true;
+				}
+				// Basic checks that are valid for every type
+				if (definition.required && (value === '' || value === undefined)) {
+					// An empty required config is invalid.
+					return false;
+				} else if (value === '' || value === undefined) {
+					// An empty non-required config is valid, inherit previous value.
+					return true;
+				}
+				// Type-specific checking
+				switch (definition.type) {
+					case ConfigEntryType.INTEGER:
+						const int =
+							typeof value === 'number' ? value : parseInt(value as string);
+						if (isNaN(int)) {
+							// Needs to be a number
+							return false;
+						}
+						if (int !== Math.floor(int)) {
+							// Needs to be an integer
+							return false;
+						}
+					case ConfigEntryType.FLOAT:
+						const float =
+							typeof value === 'number' ? value : parseFloat(value as string);
+						if (isNaN(float)) {
+							// Needs to be a number
+							return false;
+						}
+				}
+				// Constraint validation
+				const constraints =
+					definition.constraints?.reduce<boolean>(
+						(acc, constraint) =>
+							acc &&
+							check_constraint(
+								value,
+								constraint,
+								this.config ?? undefined,
+								node.config
+							),
+						true
+					) ?? true;
+				return constraints;
+			}, true);
 		},
 	},
 });

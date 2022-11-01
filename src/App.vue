@@ -51,9 +51,6 @@ export default defineComponent({
 		PromptBox,
 	},
 	mounted() {
-		// Storing logs in the log store is desireable for deployment, but
-		// in debugging it can be more of a hindrance. Disable for development.
-		enableLogging();
 		// Connect to the datalink server.
 		const datalink = useDatalink();
 		datalink.connect();

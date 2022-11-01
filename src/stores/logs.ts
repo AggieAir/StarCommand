@@ -3,15 +3,16 @@ import { defineStore } from 'pinia';
 export enum LogSeverity {
 	DEBUG,
 	INFO,
+	LOG,
 	WARN,
 	ERROR,
-	FATAL,
 }
 
 export interface LogEntry {
 	severity: LogSeverity;
 	message: string[];
 	stack_trace: StackFrame[];
+	timestamp: Date;
 }
 
 export interface StackFrame {
@@ -59,6 +60,7 @@ function create_logger(
 			severity,
 			message,
 			stack_trace: parse_stack_trace(new Error().stack),
+			timestamp: new Date(Date.now()),
 		});
 	};
 }
@@ -75,7 +77,7 @@ export function enableLogging() {
 	}
 	logging_enabled = true;
 	console.debug = create_logger(console.debug, LogSeverity.DEBUG);
-	console.log = create_logger(console.log, LogSeverity.INFO);
+	console.log = create_logger(console.log, LogSeverity.LOG);
 	console.info = create_logger(console.info, LogSeverity.INFO);
 	console.warn = create_logger(console.warn, LogSeverity.WARN);
 	console.error = create_logger(console.error, LogSeverity.ERROR);

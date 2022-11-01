@@ -54,9 +54,9 @@ export default defineComponent({
 		next(): () => NodeConfiguration | undefined {
 			return useConfigStore().get_node(this.group, this.sensor, this.node)[2];
 		},
-		config_state(): boolean {
+		config_state(): boolean[] {
 			// return this.editor_refs.reduce((acc, { valid }) => acc && valid, true);
-			if (!this.config) return false;
+			if (!this.config) return [false];
 			return useConfigStore().validate_node_config(this.config);
 		},
 		prev_state() {
@@ -102,7 +102,10 @@ export default defineComponent({
 				'next-good': this.next_state === 0,
 				'next-warn': this.next_state === 1,
 				'next-err': this.next_state === 2,
-				'node-err': !this.config_state,
+				'node-err': !this.config_state.reduce(
+					(acc, valid) => valid && acc,
+					true
+				),
 			};
 		},
 		no_config_entries(): boolean {

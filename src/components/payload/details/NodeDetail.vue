@@ -165,6 +165,16 @@ export default defineComponent({
 				<span class="label">Failures</span>
 				<span class="value">{{ node.state.failures }}</span>
 			</div>
+			<div class="detail">
+				<span class="label">Duration</span>
+				<span class="value">{{ node.state.performance }}ms</span>
+			</div>
+			<div class="detail" v-if="node.has_queue">
+				<span class="label">Queue length</span>
+				<span class="value" :class="{ error: node.state.queue_length > 1 }">
+					{{ node.state.queue_length }}
+				</span>
+			</div>
 			<NodeDataField
 				v-for="field in node.state.data"
 				:key="field.definition.name"

@@ -56,12 +56,35 @@ export default defineComponent({
 		message() {
 			return this.entry.message.join(' ');
 		},
+		timestamp() {
+			function pad(value: number): string {
+				if (value < 10) {
+					return `0${value}`;
+				}
+				return `${value}`;
+			}
+			function padMs(value: number): string {
+				if (value < 10) {
+					return `00${value}`;
+				}
+				if (value < 100) {
+					return `0${value}`;
+				}
+				return `${value}`;
+			}
+			return `${pad(this.entry.timestamp.getHours())}:${pad(
+				this.entry.timestamp.getMinutes()
+			)}:${pad(this.entry.timestamp.getSeconds())}.${padMs(
+				this.entry.timestamp.getMilliseconds()
+			)}`;
+		},
 	},
 });
 </script>
 
 <template>
 	<div class="log-entry" :class="severity_class">
+		<span class="timestamp">{{ timestamp }}</span>
 		<div class="message">
 			<span class="line">{{ message }}</span>
 		</div>
@@ -80,8 +103,9 @@ export default defineComponent({
 <style lang="scss" scoped>
 .log-entry {
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
+	gap: 1rem;
+	font-family: monospace;
 
 	.origin {
 		color: var(--color-text);
@@ -92,6 +116,7 @@ export default defineComponent({
 	.message {
 		display: flex;
 		flex-direction: column;
+		flex-grow: 1;
 	}
 
 	&.warn {
