@@ -67,14 +67,14 @@ export const useConfigStore = defineStore({
 					name ??
 					(await new Prompt(
 						'New config name',
-						'Please input a name for the new configuration:',
-						PromptType.DATE
+						'Please input a name for the new configuration:'
 					).show()),
 				date:
 					date ??
 					(await new Prompt(
 						'New mission date',
-						'Please input a date for the new configuration:'
+						'Please input a date for the new configuration:',
+						PromptType.DATE
 					).show()),
 				payload: config.payload,
 				aircraft: config.aircraft?.name ?? 'none',
