@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { usePrompt } from '@/stores/prompt';
+import { PromptType, usePrompt } from '@/stores/prompt';
 import {
 	ref,
 	computed,
@@ -16,7 +16,16 @@ const prompt = usePrompt();
 const text = ref('');
 
 const type = computed(() => {
-	prompt.data.type ?? 'text';
+	switch (prompt.data.type) {
+		case undefined:
+		// fallthrough
+		case PromptType.STRING:
+			return 'text';
+		case PromptType.NUMBER:
+			return 'number';
+		case PromptType.DATE:
+			return 'date';
+	}
 });
 
 function submit() {
