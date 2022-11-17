@@ -73,7 +73,7 @@ export default defineComponent({
 			}
 			return {
 				valid: result?.valid ?? true,
-				value: result?.valid ?? true ? value : undefined,
+				value: value,
 			};
 		},
 		on_update(event: Event) {
