@@ -126,35 +126,35 @@ export default defineComponent({
 			<IntegerField
 				v-if="field.type === ConfigEntryType.INTEGER"
 				:definition="field"
-				:config="config.config"
+				:configuration="config.config"
 				v-model="(config.config![field.name] as number)"
 				:ref="(el) => store_editor_ref(el, index)"
 			/>
 			<FloatField
 				v-else-if="field.type === ConfigEntryType.FLOAT"
 				:definition="field"
-				:config="config.config"
+				:configuration="config.config"
 				v-model="(config.config![field.name] as number)"
 				:ref="(el) => store_editor_ref(el, index)"
 			/>
 			<TextField
 				v-else-if="field.type === ConfigEntryType.STRING"
 				:definition="field"
-				:config="config.config"
+				:configuration="config.config"
 				v-model="(config.config![field.name] as string)"
 				:ref="(el) => store_editor_ref(el, index)"
 			/>
 			<EnumInput
 				v-else-if="field.type === ConfigEntryType.ENUM"
 				:definition="field"
-				:config="config.config"
+				:configuration="config.config"
 				v-model="(config.config![field.name] as number)"
 				:ref="(el) => store_editor_ref(el, index)"
 			/>
 			<BooleanInput
 				v-else-if="field.type === ConfigEntryType.BOOLEAN"
 				:definition="field"
-				:config="config.config"
+				:configuration="config.config"
 				v-model="(config.config![field.name] as boolean)"
 				:ref="(el) => store_editor_ref(el, index)"
 			/>
