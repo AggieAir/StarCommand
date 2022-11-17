@@ -15,7 +15,7 @@ import {
 } from '@/datastructures/definition';
 import type { UUID, ValueOf } from '@/utility_types';
 import { defineStore } from 'pinia';
-import { Prompt } from './prompt';
+import { Prompt, PromptType } from './prompt';
 
 export const useConfigStore = defineStore({
 	id: 'config',
@@ -67,7 +67,8 @@ export const useConfigStore = defineStore({
 					name ??
 					(await new Prompt(
 						'New config name',
-						'Please input a name for the new configuration:'
+						'Please input a name for the new configuration:',
+						PromptType.DATE
 					).show()),
 				date:
 					date ??
