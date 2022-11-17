@@ -133,7 +133,7 @@ function check_constraint_value(
 				return new RegExp(compare_against as string).test(value);
 			default:
 				console.error(
-					'Error: invalid constraint for string value; lexographical comparisons are not supported at this time.'
+					'Error: invalid constraint for string value; lexicographical comparisons are not supported at this time.'
 				);
 				return false;
 		}
