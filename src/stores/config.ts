@@ -155,14 +155,18 @@ export const useConfigStore = defineStore({
 				);
 				if (other_nodes.length > 0) {
 					// If those nodes exist, rename them all with indices indicating their relative positioning
-					// in the pipeline
+					// in the pipeline. Also, replace all hyphens with underscores.
 					other_nodes.forEach(
-						(node, index) => (node.name = `${node.definition.name}_${index}`)
+						(node, index) =>
+							(node.name = `${node.definition.name.replaceAll(
+								'-',
+								'_'
+							)}_${index}`)
 					);
 					return `${definition.name}_${other_nodes.length}`;
 				} else {
-					// Otherwise, just return the name of the definition.
-					return definition.name;
+					// Otherwise, just return the name of the definition, with all hyphens replaced with underscores
+					return definition.name.replaceAll('-', '_');
 				}
 			})();
 			const config = definition.config_entries.reduce<

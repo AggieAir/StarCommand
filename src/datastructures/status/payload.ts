@@ -203,7 +203,14 @@ export class Payload {
 				.get(message.capture_group)
 				?.parse_heartbeat(message.payload);
 		} else if (message_is_node_heartbeat(message)) {
-			this.find_node(message)?.parse_heartbeat(message.payload);
+			const node = this.find_node(message);
+			if (node === undefined) {
+				console.error(
+					`Received message for unknown node ${message.system}/${message.computer}/${message.capture_group}/${message.sensor}/${message.node}`
+				);
+				return;
+			}
+			node.parse_heartbeat(message.payload);
 		} else if (message_is_computer_status(message)) {
 			if (message.computer.includes('copilot')) {
 				this._copilot_computer?.parse_heartbeat(message.payload);
