@@ -10,7 +10,9 @@ import {
 	message_is_payload_heartbeat,
 	type Heartbeat,
 	type IncomingStatusMessage,
+	type ProcessingNodeHeartbeatMsg,
 } from './heartbeats';
+import type { ProcessingNode } from './node';
 
 /**
  * An enum representing the overall state of the payload.
@@ -184,17 +186,24 @@ export class Payload {
 		);
 	}
 
+	private find_node(
+		message: ProcessingNodeHeartbeatMsg
+	): ProcessingNode | undefined {
+		let group = this._capture_groups.get(message.capture_group);
+		let sensor = group?.sensors.get(message.sensor);
+		let node = sensor?.nodes.find(
+			(node) => node.name.replaceAll('-', '_') === message.node
+		);
+		return node;
+	}
+
 	public handle_message(message: IncomingStatusMessage): void {
 		if (message_is_capture_group_heartbeat(message)) {
 			this._capture_groups
 				.get(message.capture_group)
 				?.parse_heartbeat(message.payload);
 		} else if (message_is_node_heartbeat(message)) {
-			this._capture_groups
-				.get(message.capture_group)
-				?.sensors.get(message.sensor)
-				?.nodes.find((node) => node.name === message.node)
-				?.parse_heartbeat(message.payload);
+			this.find_node(message)?.parse_heartbeat(message.payload);
 		} else if (message_is_computer_status(message)) {
 			if (message.computer.includes('copilot')) {
 				this._copilot_computer?.parse_heartbeat(message.payload);
