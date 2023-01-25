@@ -84,6 +84,9 @@ export default defineComponent({
 				})),
 			];
 		},
+		estop_enabled() {
+			return usePayloadStore().allow_estop;
+		},
 	},
 	components: {
 		ComputerStatus,
@@ -148,7 +151,8 @@ export default defineComponent({
 			font-weight: bold;
 		}
 
-		.monitor-subtitle {
+		.monitor-subtitle,
+		.abort-enabled {
 			font-size: 0.8rem;
 			font-weight: light;
 			font-style: italic;

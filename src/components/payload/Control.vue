@@ -15,7 +15,36 @@ export default defineComponent({
 			);
 		},
 		safe_to_stop() {
-			return usePayloadStore().payload?.state === PayloadState.STANDBY;
+			const state = usePayloadStore().payload?.state;
+			const estop_allowed = usePayloadStore().allow_estop;
+			switch (state) {
+				case PayloadState.STANDBY:
+					return true;
+				case PayloadState.CAPTURING:
+					return estop_allowed; // Allow us to do a safe shutdown even while capture is ongoing if abort is enabled.
+				default:
+					return false;
+			}
+		},
+		show_estop() {
+			const estop_allowed = usePayloadStore().allow_estop;
+			return estop_allowed && !this.safe_to_stop && this.can_abort;
+		},
+		can_abort() {
+			const state = usePayloadStore().payload?.state;
+			switch (state) {
+				// Abort doesn't make sense in these contexts, as a mission is not running during any of these states.
+				// Don't show the abort button in these states.
+				case PayloadState.CONTROL_INIT: // fallthrough
+				case PayloadState.CONFIG_INIT: // fallthrough
+				case PayloadState.CONTROL_SHUTDOWN: // fallthrough
+				case PayloadState.WAITING_FOR_CONFIG: // fallthrough
+				case PayloadState.READY_FOR_MISSION_START: // fallthrough
+				case PayloadState.READY_FOR_SHUTDOWN:
+					return false;
+				default:
+					return true;
+			}
 		},
 	},
 	methods: {
@@ -41,6 +70,31 @@ export default defineComponent({
 				usePayloadStore().payload?.end_mission();
 			}
 		},
+		async estop() {
+			if (!usePayloadStore().allow_estop) {
+				console.error(
+					'Mission abort was attempted without enabling in settings. Refusing to comply.'
+				);
+				return;
+			}
+			const result = await useAlert().open({
+				title: 'Abort Mission',
+				message:
+					'Are you sure you want to abort the mission? Any unsaved data will be lost!',
+				buttons: [
+					{
+						label: 'Cancel',
+					},
+					{
+						label: 'Abort Mission',
+						dangerous: true,
+					},
+				],
+			});
+			if (result === 1) {
+				usePayloadStore().payload?.abort_mission();
+			}
+		},
 	},
 });
 </script>
@@ -50,7 +104,10 @@ export default defineComponent({
 		<Button class="start" @click="start" :disabled="!ready">
 			Start Mission
 		</Button>
-		<Button class="stop" @click="stop" :disabled="!safe_to_stop">
+		<Button class="stop" @click="estop" v-if="show_estop">
+			Abort Mission
+		</Button>
+		<Button class="stop" @click="stop" :disabled="!safe_to_stop" v-else>
 			End Mission
 		</Button>
 	</div>

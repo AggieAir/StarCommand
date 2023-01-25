@@ -1,13 +1,21 @@
 <template>
-	<div :class="class_list">
-		<div>Server address: {{ server_address }}</div>
-		<div>Link status: {{ link_status }}</div>
+	<div class="status-bar">
+		<div class="comms" :class="{ online: telem_connected || config_connected }">
+			Server address: {{ server_address }}
+		</div>
+		<div v-if="estop_enabled" class="warning">
+			Mission abort is enabled. Read all prompts.
+		</div>
+		<div class="comms" :class="{ online: telem_connected || config_connected }">
+			Link status: {{ link_status }}
+		</div>
 	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { useDatalink } from '@/stores/datalink';
+import { usePayloadStore } from '@/stores/payload';
 
 export default defineComponent({
 	setup() {
@@ -36,19 +44,14 @@ export default defineComponent({
 			}
 			return 'disconnected';
 		},
-		class_list(): { [key: string]: boolean } {
-			return {
-				'status-bar': true,
-				// online: this.telem_connected && this.config_connected,
-				online: this.telem_connected || this.config_connected,
-				offline: !this.telem_connected && !this.config_connected,
-			};
+		estop_enabled() {
+			return usePayloadStore().allow_estop;
 		},
 	},
 });
 </script>
 
-<style>
+<style lang="scss" scoped>
 .status-bar {
 	display: flex;
 	justify-content: space-between;
@@ -56,13 +59,28 @@ export default defineComponent({
 	padding: 5px;
 	background-color: var(--color-background-soft);
 	z-index: var(--z-index-statusbar);
+
+	.comms {
+		&.online {
+			color: var(--color-success);
+		}
+
+		&:not(.online) {
+			color: var(--color-error);
+		}
+	}
+
+	.warning {
+		color: var(--color-error);
+		font-weight: bold;
+	}
 }
 
-.status-bar.online {
+.status-bar .comms.online {
 	color: var(--color-success);
 }
 
-.status-bar.offline {
+.status-bar .comms.offline {
 	color: var(--color-error);
 }
 </style>

@@ -16,6 +16,7 @@ export const usePayloadStore = defineStore({
 		});
 		return {
 			payload: null as Payload | null,
+			allow_estop: false,
 		};
 	},
 	getters: {
@@ -24,6 +25,9 @@ export const usePayloadStore = defineStore({
 		},
 	},
 	actions: {
+		enable_estop() {
+			this.allow_estop = true;
+		},
 		async initialize(
 			config?: MissionConfiguration,
 			manual_load: boolean = false

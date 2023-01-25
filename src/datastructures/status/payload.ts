@@ -248,6 +248,17 @@ export class Payload {
 		});
 	}
 
+	public abort_mission(): void {
+		useDatalink().send_command({
+			type: 'control',
+			target: '/end_mission',
+			protocol: 'ros',
+			payload: JSON.stringify({
+				options: 'abort',
+			}),
+		});
+	}
+
 	public activate(capture_group: string): void {
 		useDatalink().send_command({
 			type: 'control',
