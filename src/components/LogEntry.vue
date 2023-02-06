@@ -36,10 +36,31 @@ export default defineComponent({
 				others = path_to_file;
 				path_to_file = 'console';
 			}
+			let _, line, column;
+			if (others === undefined) {
+				[path_to_file, line, column] =
+					this.entry.stack_trace[0].location?.split(/(?<=[^/]\/[^/]+):(?=\d+)/);
+				if (
+					path_to_file === undefined ||
+					line === undefined ||
+					column === undefined
+				) {
+					return undefined;
+				}
+				const file_parts = path_to_file.split('/');
+				if (file_parts.length === 0) {
+					return undefined;
+				}
+				const filename = file_parts?.[file_parts.length - 1];
+				return [
+					`${func} in ${filename}:${line}:${column}`,
+					this.entry.stack_trace[0].location,
+				];
+			}
 			if (path_to_file === undefined || others === undefined) {
 				return undefined;
 			}
-			const [_, line, column] = others.split(':');
+			[_, line, column] = others.split(':');
 			if (line === undefined || column === undefined) {
 				return undefined;
 			}

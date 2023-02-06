@@ -115,6 +115,11 @@ export interface TabDefinition {
 .tabbox {
 	display: flex;
 	flex-direction: column;
+	justify-content: space-between;
+
+	.tab-contents {
+		flex-grow: 1;
+	}
 	.tab-header {
 		display: flex;
 		flex-direction: row;
@@ -156,6 +161,7 @@ export interface TabDefinition {
 	.tab {
 		position: relative;
 		overflow-y: scroll;
+		flex-grow: 1;
 		border: 2px solid var(--color-background-soft);
 	}
 }

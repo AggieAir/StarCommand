@@ -45,13 +45,13 @@ $fr1: 5.9rem;
 .mission-overview {
 	display: grid;
 	grid-template-columns: [payload-computer] 1fr [copilot-computer] 1fr;
-	grid-template-rows: [computers] calc($fr1 * 3) [sensors] calc($fr1 * 2) [coprocessors] calc(
-			$fr1 * 2
-		);
+	grid-template-rows: [computers] calc($fr1 * 3) [sensors] calc($fr1 * 2); // [coprocessors] calc(
+	// 	$fr1 * 2
+	// );
 	grid-template-areas:
 		'payload-computer copilot-computer'
-		'sensors sensors'
-		'coprocessors coprocessors';
+		'sensors sensors';
+	// 'coprocessors coprocessors';
 	row-gap: 0.5rem;
 	column-gap: 1rem;
 	align-items: center;

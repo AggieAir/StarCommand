@@ -190,7 +190,7 @@ export default defineComponent({
 	}
 
 	.main {
-		flex-grow: 1;
+		min-height: calc(100% - 3.5rem - 5.2rem);
 		max-height: calc(100% - 3.5rem - 5.2rem);
 		.view {
 			max-height: 100%;
