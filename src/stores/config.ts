@@ -78,7 +78,7 @@ export const useConfigStore = defineStore({
 					).show()),
 				payload: config.payload,
 				aircraft: config.aircraft?.name ?? 'none',
-			};
+			} as MissionMetadata;
 			config.uuid = metadata.uuid;
 			config.name = metadata.name;
 			config.date = metadata.date;
@@ -186,7 +186,7 @@ export const useConfigStore = defineStore({
 						acc[entry.name] = false;
 						break;
 					default:
-						acc[entry.type] = '';
+						acc[entry.name] = '';
 				}
 				return acc;
 			}, {});
@@ -282,7 +282,7 @@ export const useConfigStore = defineStore({
 				date: this.config.date ?? 'none',
 				payload: this.config.payload,
 				aircraft: this.config.aircraft?.name ?? 'none',
-			});
+			} as MissionMetadata);
 
 			await db.clobber<MissionConfiguration>(
 				Table.MissionConfiguration,

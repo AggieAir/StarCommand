@@ -47,7 +47,7 @@ export default defineComponent({
 		} {
 			this.error = null;
 
-			if (this.definition.required && value === '') {
+			if (this.definition.required && (value === '' || value === undefined)) {
 				this.error = 'This field is required.';
 				return { value: undefined, valid: false };
 			}

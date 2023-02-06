@@ -5,7 +5,7 @@ import { defineComponent, type PropType } from 'vue';
 export default defineComponent({
 	props: {
 		modelValue: {
-			type: Number,
+			type: [Number, String] as PropType<number | ''>,
 		},
 		definition: {
 			type: Object as PropType<ConfigEntryDefinition>,
@@ -61,6 +61,14 @@ export default defineComponent({
 			:title="error ?? undefined"
 			:class="{ error: error !== null }"
 		>
+			<option
+				:value="''"
+				disabled
+				v-if="modelValue === '' && definition.required"
+			>
+				Please select an option
+			</option>
+			<option :value="''" v-if="!definition.required">--</option>
 			<option
 				v-for="choice, idx in definition.choices!"
 				:value="idx"

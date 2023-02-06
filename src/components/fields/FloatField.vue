@@ -41,9 +41,11 @@ export default defineComponent({
 			valid: boolean;
 		} {
 			this.error = null;
-			if (this.definition.required && value === '') {
+			if (this.definition.required && (value === '' || value === undefined)) {
 				this.error = 'This field is required.';
 				return { value: undefined, valid: false };
+			} else if (value === '' || value === undefined) {
+				return { value: undefined, valid: true };
 			}
 			const num = typeof value === 'number' ? value : parseFloat(value);
 			if (isNaN(num) && value !== '') {
@@ -107,6 +109,7 @@ export default defineComponent({
 			:class="{ error: error !== null }"
 			ref="input"
 		/>
+		<span v-if="definition.units">{{ definition.units }}</span>
 	</div>
 </template>
 
