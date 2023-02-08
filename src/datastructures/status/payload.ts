@@ -1,4 +1,7 @@
+import Database, { Table } from '@/database';
+import { Alert, useAlert } from '@/stores/alert';
 import { useDatalink } from '@/stores/datalink';
+import { usePayloadStore } from '@/stores/payload';
 import type { MissionConfiguration } from '../configuration';
 import { CaptureGroup } from './capture_group';
 import { Computer } from './computer';
@@ -10,6 +13,7 @@ import {
 	message_is_payload_heartbeat,
 	type Heartbeat,
 	type IncomingStatusMessage,
+	type PayloadHeartbeat,
 	type ProcessingNodeHeartbeatMsg,
 } from './heartbeats';
 import type { ProcessingNode } from './node';
@@ -97,6 +101,8 @@ export enum PayloadState {
 
 export class Payload {
 	private _state = PayloadState.CONTROL_INIT;
+
+	private uuids_to_ignore: string[] = [];
 
 	public get state(): number {
 		return this._state;
@@ -218,7 +224,7 @@ export class Payload {
 				this._payload_computer.parse_heartbeat(message.payload);
 			}
 		} else if (message_is_payload_heartbeat(message)) {
-			this.parse_heartbeat(message.payload);
+			this.parse_heartbeat(message.payload as any as PayloadHeartbeat);
 		} else if (message_is_copilot_heartbeat(message)) {
 			// Do nothing
 		} else {
@@ -226,7 +232,47 @@ export class Payload {
 		}
 	}
 
-	private parse_heartbeat(message: Heartbeat): void {
+	private async parse_heartbeat(message: PayloadHeartbeat) {
+		if (message.mission_uuid !== this._config?.uuid) {
+			console.log('New mission detected, requesting load');
+			// First check to see if we've seen it before
+			if (this.uuids_to_ignore.find((uuid) => uuid === message.mission_uuid)) {
+				// Update payload state anyways, the control node's heartbeats are always valid.
+				this._state = message.state;
+				return;
+			}
+			const db = await Database.get_database();
+			// Check to see if it exists in DB first
+			const config = await (async () => {
+				try {
+					return await db.get<MissionConfiguration>(
+						Table.MissionConfiguration,
+						message.mission_uuid
+					);
+				} catch {
+					console.warn('Mission is unknown, flagging');
+					this.uuids_to_ignore.push(message.mission_uuid);
+					return;
+				}
+			})();
+
+			if (config === undefined) {
+				return;
+			}
+
+			const result = await new Alert(
+				'Payload is running a different mission',
+				'Would you like to load the mission the payload is running?',
+				[{ label: 'Yes' }, { label: 'No' }]
+			).show();
+			if (result === 0) {
+				usePayloadStore().initialize(config, false);
+				return;
+			} else {
+				// Add to ignore list
+				this.uuids_to_ignore.push(message.mission_uuid);
+			}
+		}
 		this._state = message.state;
 	}
 

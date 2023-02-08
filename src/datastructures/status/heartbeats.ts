@@ -41,6 +41,44 @@ export interface Heartbeat {
 	data: ArrayBuffer;
 }
 
+export interface PayloadHeartbeat {
+	/**
+	 * An 8-bit integer representing the node's state.
+	 */
+	state: number;
+	/**
+	 * A 32-bit bitmask representing the node's warnings.
+	 */
+	errors: number;
+	/**
+	 * A 16-bit integer representing the number of requests the node has received.
+	 * This is incremented each time a request is sent to the node. In some extreme
+	 * cases, this may overflow, however it is unlikely as missions usually only run
+	 * for a few hours.
+	 */
+	requests: number;
+	/**
+	 * A 16-bit integer representing the number of requests the node has failed to complete.
+	 * This is incremented each time a request fails to complete.
+	 */
+	failures: number;
+	/**
+	 * The duration in milliseconds of the node's most recent successful operation.
+	 * Initializes to 0.
+	 */
+	performance: number;
+	/**
+	 * The number of processing requests in this node's processing queue, if such a
+	 * queue exists. If this is anything other than 0 or 1, the node is running too
+	 * slowly.
+	 */
+	queue_length: number;
+	/**
+	 * The mission UUID, pre-parsed for us by the datalink.
+	 */
+	mission_uuid: string;
+}
+
 export interface ComputerStatus {
 	cpu_count: number;
 	cpu_usage: number[];
