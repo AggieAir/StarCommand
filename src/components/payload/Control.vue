@@ -14,6 +14,9 @@ export default defineComponent({
 				PayloadState.READY_FOR_MISSION_START
 			);
 		},
+		external_control() {
+			return usePayloadStore().payload?.external_control;
+		},
 		safe_to_stop() {
 			const state = usePayloadStore().payload?.state;
 			const estop_allowed = usePayloadStore().allow_estop;
@@ -26,9 +29,25 @@ export default defineComponent({
 					return false;
 			}
 		},
+		running() {
+			const state = usePayloadStore().payload?.state;
+			switch (state) {
+				case PayloadState.STANDBY: // fallthrough
+				case PayloadState.CAPTURING: // fallthrough
+				case PayloadState.SENSOR_INIT: // fallthrough
+				case PayloadState.SENSOR_SHUTDOWN:
+					return true;
+				default:
+					return false;
+			}
+		},
 		show_estop() {
 			const estop_allowed = usePayloadStore().allow_estop;
-			return estop_allowed && !this.safe_to_stop && this.can_abort;
+			return (
+				estop_allowed &&
+				(!this.safe_to_stop || this.external_control) &&
+				this.can_abort
+			);
 		},
 		can_abort() {
 			const state = usePayloadStore().payload?.state;
@@ -44,6 +63,31 @@ export default defineComponent({
 					return false;
 				default:
 					return true;
+			}
+		},
+		start_mission_title() {
+			if (this.external_control) {
+				return 'Payload is being controlled externally. Software controls are offline.';
+			}
+			if (this.running) {
+				return 'Mission is already running';
+			}
+			if (!this.ready) {
+				return 'Payload is not ready to start';
+			}
+		},
+		end_mission_title() {
+			if (this.external_control) {
+				return 'Payload is being controlled externally. Software controls are offline.';
+			}
+			if (!this.running) {
+				return 'Mission is not running';
+			}
+			if (
+				usePayloadStore().payload?.state === PayloadState.CAPTURING &&
+				!this.safe_to_stop
+			) {
+				return 'Payload is collecting data. Please shut down all capture groups before ending mission.';
 			}
 		},
 	},
@@ -101,13 +145,24 @@ export default defineComponent({
 
 <template>
 	<div class="payload-control-box">
-		<Button class="start" @click="start" :disabled="!ready">
+		<Button
+			class="start"
+			@click="start"
+			:disabled="!ready || external_control"
+			:title="start_mission_title"
+		>
 			Start Mission
 		</Button>
 		<Button class="stop" @click="estop" v-if="show_estop">
 			Abort Mission
 		</Button>
-		<Button class="stop" @click="stop" :disabled="!safe_to_stop" v-else>
+		<Button
+			class="stop"
+			@click="stop"
+			:disabled="!safe_to_stop || external_control"
+			:title="end_mission_title"
+			v-else
+		>
 			End Mission
 		</Button>
 	</div>

@@ -304,6 +304,8 @@ export default class Database {
 				payload: data.payload ?? '',
 				aircraft: data.aircraft?.name ?? '',
 				uuid: data.uuid!,
+				issues: undefined,
+				uploadable: undefined,
 			};
 			// Clobber any older versions of this same mission
 			await this.clobber(Table.MissionMetadata, metadata);

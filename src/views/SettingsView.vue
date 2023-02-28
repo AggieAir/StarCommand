@@ -34,13 +34,54 @@ import FieldInput from '../components/fields/FieldInput.vue';
 import Button from '../components/widgets/Button.vue';
 import { useAlert } from '@/stores/alert';
 import { usePayloadStore } from '@/stores/payload';
+import {
+	ConfigEntryType,
+	type ConfigEntryDefinition,
+} from '@/datastructures/definition';
 
 export default defineComponent({
 	components: { TextField, IntegerField, FieldInput, Button },
-	data: () => ({
-		telemetry_address: useDatalink().telemetry_address ?? '',
-		telemetry_port: useDatalink().telemetry_port ?? '',
-	}),
+	data: () => {
+		const result = {
+			telemetry_address: useDatalink().telemetry_address ?? '',
+			telemetry_port: useDatalink().telemetry_port ?? '',
+			extra_settings: [
+				{
+					name: 'monitor.config_autodetection',
+					human_name: 'Watch for Mission Change',
+					description:
+						'Watch payload heartbeats for changes in mission config, and prompt to load the new mission.',
+					type: ConfigEntryType.BOOLEAN,
+					required: false,
+					default: true,
+				},
+			] as ConfigEntryDefinition[],
+			extra_values: [] as (string | boolean | number)[],
+		};
+		result.extra_values = result.extra_settings.map((setting) => {
+			const default_value = (() => {
+				if (setting.default !== undefined) {
+					return setting.default;
+				}
+				switch (setting.type) {
+					case ConfigEntryType.BOOLEAN:
+						return false;
+					case ConfigEntryType.FLOAT:
+						return 0.0;
+					case ConfigEntryType.INTEGER:
+						return 0;
+					case ConfigEntryType.STRING:
+						return '';
+					case ConfigEntryType.ENUM:
+						return 0;
+					case ConfigEntryType.LINKED:
+						throw 'Cannot use linked config entries in settings';
+				}
+			})();
+			return localStorage.getItem(setting.name) ?? default_value;
+		});
+		return result;
+	},
 	computed: {
 		valid() {
 			return this.telemetry_address.length > 0;
@@ -58,6 +99,7 @@ export default defineComponent({
 			useDatalink().connect();
 			localStorage.setItem('telemetry_address', this.telemetry_address);
 			localStorage.setItem('telemetry_port', this.telemetry_port);
+			this.extra_settings.forEach((setting, index) => {});
 			this.$router.push('/');
 		},
 		async enable_estop() {

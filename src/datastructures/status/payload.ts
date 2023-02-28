@@ -103,6 +103,11 @@ export class Payload {
 	private _state = PayloadState.CONTROL_INIT;
 
 	private uuids_to_ignore: string[] = [];
+	private _external_control: boolean = false;
+
+	public get external_control(): boolean {
+		return this._external_control;
+	}
 
 	public get state(): number {
 		return this._state;
@@ -234,13 +239,19 @@ export class Payload {
 
 	private async parse_heartbeat(message: PayloadHeartbeat) {
 		if (message.mission_uuid !== this._config?.uuid) {
-			console.log('New mission detected, requesting load');
 			// First check to see if we've seen it before
-			if (this.uuids_to_ignore.find((uuid) => uuid === message.mission_uuid)) {
+			const idx = this.uuids_to_ignore.findIndex(
+				(uuid) => uuid === message.mission_uuid
+			);
+			if (idx !== -1) {
+				console.debug(`Payload's mission is ignored (index ${idx})`);
 				// Update payload state anyways, the control node's heartbeats are always valid.
 				this._state = message.state;
 				return;
 			}
+			console.log(
+				`New mission ${message.mission_uuid} detected, requesting load. Existing mission: ${this.config?.uuid}`
+			);
 			const db = await Database.get_database();
 			// Check to see if it exists in DB first
 			const config = await (async () => {
@@ -256,24 +267,26 @@ export class Payload {
 				}
 			})();
 
-			if (config === undefined) {
-				return;
-			}
-
-			const result = await new Alert(
-				'Payload is running a different mission',
-				'Would you like to load the mission the payload is running?',
-				[{ label: 'Yes' }, { label: 'No' }]
-			).show();
-			if (result === 0) {
-				usePayloadStore().initialize(config, false);
-				return;
-			} else {
-				// Add to ignore list
-				this.uuids_to_ignore.push(message.mission_uuid);
+			if (config !== undefined) {
+				const result = await new Alert(
+					'Payload is running a different mission',
+					'Would you like to load the mission the payload is running?',
+					[{ label: 'Yes' }, { label: 'No' }]
+				).show();
+				if (result === 0) {
+					usePayloadStore().initialize(config, false);
+					return;
+				} else {
+					// Add to ignore list
+					this.uuids_to_ignore.push(message.mission_uuid);
+				}
 			}
 		}
 		this._state = message.state;
+		// External control bit. Indicates that the mission is being controlled by some external device
+		// (usually a switch) and that software commands for start and end mission will be ignored.
+		// Mission abort should still function.
+		this._external_control = (message.errors & (0b1 << 31)) !== 0;
 	}
 
 	public start_mission(): void {

@@ -1,4 +1,8 @@
-import { ConstraintRelation, ConstraintType } from './definition';
+import {
+	ConstraintRelation,
+	ConstraintSeverity,
+	ConstraintType,
+} from './definition';
 import type {
 	AircraftDefinition,
 	CaptureTypeDefinition,
@@ -44,12 +48,20 @@ export type MissionConfiguration = {
 	capture_groups: CaptureGroupConfiguration[]; // List of CaptureGroupConfiguration objects
 };
 
+export interface MissionIssue {
+	location: string;
+	description: string;
+	severity: ConstraintSeverity;
+}
+
 export interface MissionMetadata {
 	name: string;
 	uuid: UUID;
 	date: string;
 	payload: string;
 	aircraft: string;
+	issues: MissionIssue[] | undefined;
+	uploadable: boolean | undefined;
 }
 
 export function validate_node(obj: any): obj is NodeConfiguration {
@@ -220,7 +232,9 @@ export function check_constraint(
  * @remarks
  * We can't rely on the crypto-random UUID generator because it doesn't support
  * running in insecure contexts, and we need to be able to generate UUIDs in
- * the browser when running on a local server.
+ * the browser when running on a local server. This should be fine as we are not
+ * using this for anything security-sensitive, the worst that can happen is an older
+ * config gets overwritten by a collision.
  */
 export function generate_uuid(): UUID {
 	if (crypto.randomUUID !== undefined) {
