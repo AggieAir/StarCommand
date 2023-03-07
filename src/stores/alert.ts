@@ -11,6 +11,8 @@ export interface AlertDef {
 	buttons: AlertButton[];
 }
 
+let alert_promise: Promise<number | null> | null = null;
+
 export const useAlert = defineStore({
 	id: 'alert',
 	state: () => ({
@@ -24,15 +26,20 @@ export const useAlert = defineStore({
 	}),
 	actions: {
 		async open(data: AlertDef): Promise<number | null> {
-			return new Promise((resolve) => {
+			if (this.is_open) {
+				await alert_promise;
+			}
+			alert_promise = new Promise((resolve) => {
 				this.data = data;
 				this.resolve = resolve;
 				this.is_open = true;
 			});
+			return alert_promise;
 		},
 		close(selection?: number) {
 			this.is_open = false;
 			this.resolve?.(selection ?? null);
+			alert_promise = null;
 		},
 	},
 });

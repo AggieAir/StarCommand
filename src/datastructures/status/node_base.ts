@@ -4,7 +4,7 @@ import type {
 	NodeStateDefinition,
 } from '../definition';
 import type { Heartbeat } from './heartbeats';
-import { Status } from './status_enum';
+import { Status } from './status_enums';
 import * as States from './state';
 
 /**

@@ -31,7 +31,9 @@ export default defineComponent({
 
 <template>
 	<div class="boolean-input-field" @click.stop>
-		<span class="label" @click.stop="toggle">{{ definition.human_name }}</span>
+		<span class="label" @click.stop="toggle" :title="definition.description">{{
+			definition.human_name
+		}}</span>
 		<span
 			class="input"
 			:class="{ active: modelValue }"

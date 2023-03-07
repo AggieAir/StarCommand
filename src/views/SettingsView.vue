@@ -1,7 +1,41 @@
 <template>
 	<div class="settings-view">
 		<div class="header">StarCommand Settings</div>
-		<div class="contents">
+		<template
+			v-for="(field, element_key) in settings_definitions"
+			:key="element_key"
+		>
+			<IntegerField
+				v-if="field.type === ConfigEntryType.INTEGER"
+				:definition="field"
+				:configuration="settings"
+				v-model="(settings[field.name] as number)"
+			/>
+			<FloatField
+				v-if="field.type === ConfigEntryType.FLOAT"
+				:definition="field"
+				:configuration="settings"
+				v-model="(settings[field.name] as number)"
+			/>
+			<TextField
+				v-if="field.type === ConfigEntryType.STRING"
+				:definition="field"
+				:configuration="settings"
+				v-model="(settings[field.name] as string)"
+			/>
+			<EnumInput
+				v-if="field.type === ConfigEntryType.ENUM"
+				:definition="field"
+				:configuration="settings"
+				v-model="(settings[field.name] as number)"
+			/>
+			<BooleanInput
+				v-if="field.type === ConfigEntryType.BOOLEAN"
+				:definition="field"
+				v-model="(settings[field.name] as boolean)"
+			/>
+		</template>
+		<!-- <div class="contents">
 			<div class="setting">
 				<span class="label">Telemetry Address</span>
 				<FieldInput v-model="telemetry_address" size="15" />
@@ -21,7 +55,7 @@
 			title="Allow StarCommand to issue a software abort command to the payload"
 		>
 			{{ estop_enabled ? 'Abort Enabled' : 'Enable Mission Abort' }}
-		</Button>
+		</Button> -->
 	</div>
 </template>
 
@@ -37,10 +71,24 @@ import { usePayloadStore } from '@/stores/payload';
 import {
 	ConfigEntryType,
 	type ConfigEntryDefinition,
+	type StarCommandSettingDefinition,
 } from '@/datastructures/definition';
+import { useSettingsStore } from '@/stores/settings';
+import type { ConfigEntries } from '@/datastructures/configuration';
+import FloatField from '@/components/fields/FloatField.vue';
+import EnumInput from '@/components/fields/EnumInput.vue';
+import BooleanInput from '@/components/fields/BooleanInput.vue';
 
 export default defineComponent({
-	components: { TextField, IntegerField, FieldInput, Button },
+	components: {
+		TextField,
+		IntegerField,
+		FieldInput,
+		Button,
+		FloatField,
+		EnumInput,
+		BooleanInput,
+	},
 	data: () => {
 		const result = {
 			telemetry_address: useDatalink().telemetry_address ?? '',
@@ -83,45 +131,17 @@ export default defineComponent({
 		return result;
 	},
 	computed: {
-		valid() {
-			return this.telemetry_address.length > 0;
+		settings_definitions(): Readonly<StarCommandSettingDefinition[]> {
+			return useSettingsStore().definitions;
 		},
-		estop_enabled() {
-			return usePayloadStore().allow_estop;
+		settings(): ConfigEntries<string | number | boolean | undefined> {
+			return useSettingsStore().settings;
 		},
-	},
-	methods: {
-		save() {
-			useDatalink().$patch({
-				telemetry_address: this.telemetry_address,
-				telemetry_port: this.telemetry_port,
-			});
-			useDatalink().connect();
-			localStorage.setItem('telemetry_address', this.telemetry_address);
-			localStorage.setItem('telemetry_port', this.telemetry_port);
-			this.extra_settings.forEach((setting, index) => {});
-			this.$router.push('/');
-		},
-		async enable_estop() {
-			const result = await useAlert().open({
-				title: 'Enable Mission Abort?',
-				message:
-					'Are you sure you want to enable mission abort functionality? Aborting a mission will result in the loss of any unsaved data and should only be done in testing. This requires abort functionality to be enabled on the payload as well. Payload resets in the field should be performed by power-cycling the payload. This setting will be disabled when StarCommand exits.',
-				buttons: [
-					{
-						label: 'Cancel',
-					},
-					{
-						label: 'Enable',
-						dangerous: true,
-					},
-				],
-			});
-			if (result === 1) {
-				usePayloadStore().enable_estop();
-			}
+		ConfigEntryType() {
+			return ConfigEntryType;
 		},
 	},
+	methods: {},
 });
 </script>
 

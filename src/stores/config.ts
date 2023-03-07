@@ -328,6 +328,7 @@ export const useConfigStore = defineStore({
 							// Needs to be an integer
 							return false;
 						}
+						break;
 					case ConfigEntryType.FLOAT:
 						const float =
 							typeof value === 'number' ? value : parseFloat(value as string);
@@ -335,6 +336,7 @@ export const useConfigStore = defineStore({
 							// Needs to be a number
 							return false;
 						}
+						break;
 				}
 				// Constraint validation
 				const constraints =

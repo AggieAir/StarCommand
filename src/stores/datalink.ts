@@ -14,12 +14,7 @@ import type {
 	ParameterResponse,
 } from '@/datastructures/status/control';
 import type { MissionConfiguration } from '@/datastructures/configuration';
-
-// Pull address and port from local storage.
-const telemetry_address = localStorage.getItem('telemetry_address');
-const telemetry_port = localStorage.getItem('telemetry_port');
-const config_address = localStorage.getItem('config_address');
-const config_port = localStorage.getItem('config_port');
+import { useSettingsStore } from './settings';
 
 const telemetry_no_addr_notif = new Notification(
 	'Telemetry server address not set.',
@@ -99,24 +94,6 @@ export const useDatalink = defineStore({
 	state: () => {
 		return {
 			/**
-			 * The address of the telemetry radio communication server.
-			 */
-			telemetry_address,
-			/**
-			 * The port of the telemetry radio communication server.
-			 */
-			telemetry_port,
-			/**
-			 * The address of the configuration server that talks directly to the
-			 * payload.
-			 */
-			config_address,
-			/**
-			 * The port of the configuration server that talks directly to the
-			 * payload.
-			 */
-			config_port,
-			/**
 			 * If the telemetry radio communication server is online.
 			 */
 			telemetry_connected: false,
@@ -145,6 +122,14 @@ export const useDatalink = defineStore({
 			 */
 			connected_computers: [] as ComputerConnection[],
 		};
+	},
+	getters: {
+		telemetry_address() {
+			return useSettingsStore().settings.telemetry_address as string;
+		},
+		telemetry_port() {
+			return useSettingsStore().settings.telemetry_port as string;
+		},
 	},
 	actions: {
 		/**

@@ -1,7 +1,7 @@
 import type { SensorConfiguration } from '../configuration';
 import { ProcessingNode } from './node';
 import { StardosNode } from './node_base';
-import { Status } from './status_enum';
+import { Status } from './status_enums';
 
 export class Sensor {
 	private _nodes: ProcessingNode[] = [];

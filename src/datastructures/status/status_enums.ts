@@ -34,3 +34,22 @@ export enum Status {
 	 */
 	OFFLINE,
 }
+
+export enum PayloadWarningBit {
+	/**
+	 *
+	 */
+	WARN_DISK = 0,
+	WARN_SENSOR_OFFLINE = 1,
+	WARN_CAPTURE_GROUP_OFFLINE = 2,
+	WARN_NODE_OFFLINE = 3,
+	WARN_RAMDISK_IN_USE = 4,
+	WARN_DATASET_IN_USE = 5,
+	/**
+	 * Informational bit that indicates the payload is under the control
+	 * of the pilot and will reject normal software control. Operator override
+	 * mode can be enabled in settings, which will send "override" commands
+	 * which the payload will always respond to.
+	 */
+	INFO_PILOT_CONTROL = 31,
+}

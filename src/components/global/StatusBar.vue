@@ -3,8 +3,13 @@
 		<div class="comms" :class="{ online: telem_connected || config_connected }">
 			Server address: {{ server_address }}
 		</div>
-		<div v-if="estop_enabled" class="warning">
-			Mission abort is enabled. Read all prompts.
+		<div class="warnings">
+			<span
+				v-for="{ text, danger } in warnings"
+				:class="danger ? 'danger' : 'warning'"
+			>
+				{{ text }}
+			</span>
 		</div>
 		<div class="comms" :class="{ online: telem_connected || config_connected }">
 			Link status: {{ link_status }}
@@ -16,6 +21,7 @@
 import { defineComponent } from 'vue';
 import { useDatalink } from '@/stores/datalink';
 import { usePayloadStore } from '@/stores/payload';
+import { useSettingsStore } from '@/stores/settings';
 
 export default defineComponent({
 	setup() {
@@ -47,6 +53,25 @@ export default defineComponent({
 		estop_enabled() {
 			return usePayloadStore().allow_estop;
 		},
+		control_override() {
+			return useSettingsStore().settings.control_override;
+		},
+		warnings(): { text: string; danger: boolean }[] {
+			let result = [];
+			if (this.control_override) {
+				result.push({
+					text: 'Pilot control override is enabled. This can cause state to desync with control switch.',
+					danger: false,
+				});
+			}
+			if (this.estop_enabled) {
+				result.push({
+					text: 'Mission abort is enabled. Read all prompts.',
+					danger: true,
+				});
+			}
+			return result;
+		},
 	},
 });
 </script>
@@ -70,9 +95,23 @@ export default defineComponent({
 		}
 	}
 
-	.warning {
-		color: var(--color-error);
-		font-weight: bold;
+	.warnings {
+		.danger {
+			color: var(--color-error);
+			font-weight: bold;
+		}
+
+		.warning {
+			color: var(--color-warning);
+			font-weight: bold;
+		}
+
+		:not(:last-child)::after {
+			content: '|';
+			padding-left: 1em;
+			padding-right: 1em;
+			color: var(--color-text);
+		}
 	}
 }
 

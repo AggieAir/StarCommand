@@ -1,7 +1,14 @@
 import Database, { Table } from '@/database';
+import {
+	DismissReason,
+	Notification,
+	NotificationUrgency,
+} from '@/notification';
 import { Alert, useAlert } from '@/stores/alert';
 import { useDatalink } from '@/stores/datalink';
+import { useNotifications } from '@/stores/notifications';
 import { usePayloadStore } from '@/stores/payload';
+import { useSettingsStore } from '@/stores/settings';
 import type { MissionConfiguration } from '../configuration';
 import { CaptureGroup } from './capture_group';
 import { Computer } from './computer';
@@ -237,50 +244,64 @@ export class Payload {
 		}
 	}
 
-	private async parse_heartbeat(message: PayloadHeartbeat) {
-		if (message.mission_uuid !== this._config?.uuid) {
-			// First check to see if we've seen it before
-			const idx = this.uuids_to_ignore.findIndex(
-				(uuid) => uuid === message.mission_uuid
-			);
-			if (idx !== -1) {
-				console.debug(`Payload's mission is ignored (index ${idx})`);
-				// Update payload state anyways, the control node's heartbeats are always valid.
-				this._state = message.state;
+	private async handle_uuid_difference(mission_uuid: string) {
+		// First check to see if we've seen it before
+		const idx = this.uuids_to_ignore.findIndex((uuid) => uuid === mission_uuid);
+		if (idx !== -1) {
+			console.debug(`Payload's mission is ignored (index ${idx})`);
+			return;
+		}
+		console.log(
+			`New mission ${mission_uuid} detected, requesting load. Existing mission: ${this.config?.uuid}`
+		);
+		const db = await Database.get_database();
+		// Check to see if it exists in DB first
+		const config = await (async () => {
+			try {
+				return await db.get<MissionConfiguration>(
+					Table.MissionConfiguration,
+					mission_uuid
+				);
+			} catch {
+				// We don't have the mission, let the user know.
+				console.warn('Mission is unknown, flagging');
+				this.uuids_to_ignore.push(mission_uuid);
+				useNotifications().show(
+					new Notification(
+						'Unknown Mission In Progress',
+						'The mission that the payload is running is not known to this ground station. Payload control and monitoring will be extremely limited. Click here to load an empty mission.',
+						NotificationUrgency.HIGH,
+						(reason) => {
+							if (reason === DismissReason.USER_CLICK) {
+								usePayloadStore().initialize();
+							}
+						}
+					)
+				);
+				// TODO: request mission name from telemetry server
 				return;
 			}
-			console.log(
-				`New mission ${message.mission_uuid} detected, requesting load. Existing mission: ${this.config?.uuid}`
-			);
-			const db = await Database.get_database();
-			// Check to see if it exists in DB first
-			const config = await (async () => {
-				try {
-					return await db.get<MissionConfiguration>(
-						Table.MissionConfiguration,
-						message.mission_uuid
-					);
-				} catch {
-					console.warn('Mission is unknown, flagging');
-					this.uuids_to_ignore.push(message.mission_uuid);
-					return;
-				}
-			})();
+		})();
 
-			if (config !== undefined) {
-				const result = await new Alert(
-					'Payload is running a different mission',
-					'Would you like to load the mission the payload is running?',
-					[{ label: 'Yes' }, { label: 'No' }]
-				).show();
-				if (result === 0) {
-					usePayloadStore().initialize(config, false);
-					return;
-				} else {
-					// Add to ignore list
-					this.uuids_to_ignore.push(message.mission_uuid);
-				}
+		if (config !== undefined) {
+			const result = await new Alert(
+				'Payload is running a different mission',
+				'Would you like to load the mission the payload is running?',
+				[{ label: 'Yes' }, { label: 'No' }]
+			).show();
+			if (result === 0) {
+				usePayloadStore().initialize(config, false);
+				return;
+			} else {
+				// Add to ignore list
+				this.uuids_to_ignore.push(mission_uuid);
 			}
+		}
+	}
+
+	private async parse_heartbeat(message: PayloadHeartbeat) {
+		if (message.mission_uuid !== this._config?.uuid && !useAlert().is_open) {
+			this.handle_uuid_difference(message.mission_uuid);
 		}
 		this._state = message.state;
 		// External control bit. Indicates that the mission is being controlled by some external device
@@ -290,20 +311,30 @@ export class Payload {
 	}
 
 	public start_mission(): void {
+		const payload = useSettingsStore().settings.control_override
+			? JSON.stringify({
+					options: 'override',
+			  })
+			: '';
 		useDatalink().send_command({
 			type: 'control',
 			target: '/start_mission',
 			protocol: 'ros',
-			payload: '',
+			payload,
 		});
 	}
 
 	public end_mission(): void {
+		const payload = useSettingsStore().settings.control_override
+			? JSON.stringify({
+					options: 'override',
+			  })
+			: '';
 		useDatalink().send_command({
 			type: 'control',
 			target: `/end_mission`,
 			protocol: 'ros',
-			payload: '',
+			payload,
 		});
 	}
 
@@ -319,24 +350,34 @@ export class Payload {
 	}
 
 	public activate(capture_group: string): void {
+		const payload = useSettingsStore().settings.control_override
+			? JSON.stringify({
+					options: 'override',
+			  })
+			: '';
 		useDatalink().send_command({
 			type: 'control',
 			target: `/${this.config?.aircraft?.name.toLowerCase() ?? 'aircraft'}/${
 				this.payload_computer.name
 			}/${capture_group}/activate`,
 			protocol: 'ros',
-			payload: '',
+			payload,
 		});
 	}
 
 	public deactivate(capture_group: string): void {
+		const payload = useSettingsStore().settings.control_override
+			? JSON.stringify({
+					options: 'override',
+			  })
+			: '';
 		useDatalink().send_command({
 			type: 'control',
 			target: `/${this.config?.aircraft?.name.toLowerCase() ?? 'aircraft'}/${
 				this.payload_computer.name
 			}/${capture_group}/deactivate`,
 			protocol: 'ros',
-			payload: '',
+			payload,
 		});
 	}
 }

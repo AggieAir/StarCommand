@@ -1,6 +1,6 @@
 import { BarObject } from '../rendering';
 import type { ComputerStatus } from './heartbeats';
-import { Status } from './status_enum';
+import { Status } from './status_enums';
 
 export class Storage {
 	public size: number = 0;

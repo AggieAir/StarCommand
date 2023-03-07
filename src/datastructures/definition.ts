@@ -1,4 +1,4 @@
-import type { Status } from './status/status_enum';
+import type { Status } from './status/status_enums';
 
 export enum ConfigEntryType {
 	INTEGER,
@@ -39,13 +39,21 @@ export type ConfigEntryDefinition = {
 	human_name: string;
 	description: string;
 	type: ConfigEntryType;
-	units: string | undefined; // String to be rendered after the field, intended for a unit annotation
-	choices: any[] | undefined;
-	constraints: ConfigEntryConstraint[] | undefined;
-	placeholder: string | undefined;
-	default: string | number | boolean | undefined;
+	units?: string | undefined; // String to be rendered after the field, intended for a unit annotation
+	choices?: any[] | undefined;
+	constraints?: ConfigEntryConstraint[] | undefined;
+	placeholder?: string | undefined;
+	default?: string | number | boolean | undefined;
 	required: boolean;
 };
+
+export interface StarCommandSettingDefinition extends ConfigEntryDefinition {
+	/**
+	 * Determines whether the value is stored in local storage (true) or
+	 * session storage (false)
+	 */
+	persistent: boolean;
+}
 
 export type ConfigEntryConstraint = {
 	type: ConstraintType;

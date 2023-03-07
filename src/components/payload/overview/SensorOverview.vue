@@ -3,7 +3,7 @@ import type { Sensor } from '@/datastructures/status/sensor';
 import { defineComponent, type PropType } from 'vue';
 import LED from '@/components/widgets/LED.vue';
 import NodeDataField from '../sensors/NodeDataField.vue';
-import { Status } from '@/datastructures/status/status_enum';
+import { Status } from '@/datastructures/status/status_enums';
 
 export default defineComponent({
 	props: {

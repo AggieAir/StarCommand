@@ -79,7 +79,6 @@ export default defineComponent({
 		on_update(event: Event) {
 			const { value } = event.target as HTMLInputElement;
 			const { value: result } = this.validate(value);
-			console.log(`${value} => ${result}`);
 			this.$emit('update:modelValue', result);
 		},
 	},

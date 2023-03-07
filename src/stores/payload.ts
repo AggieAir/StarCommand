@@ -7,6 +7,7 @@ import { defineStore } from 'pinia';
 import { useAlert } from './alert';
 import { useDatalink } from './datalink';
 import { useNotifications } from './notifications';
+import { useSettingsStore } from './settings';
 
 export const usePayloadStore = defineStore({
 	id: 'payload',
@@ -16,18 +17,17 @@ export const usePayloadStore = defineStore({
 		});
 		return {
 			payload: null as Payload | null,
-			allow_estop: false,
 		};
 	},
 	getters: {
 		config: (state) => {
 			return state.payload?.config;
 		},
+		allow_estop() {
+			return useSettingsStore().settings.abort_enabled;
+		},
 	},
 	actions: {
-		enable_estop() {
-			this.allow_estop = true;
-		},
 		async initialize(
 			config?: MissionConfiguration,
 			manual_load: boolean = false

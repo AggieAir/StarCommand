@@ -114,18 +114,13 @@ export interface PayloadParameters {
 	/**
 	 * The startup mode of the payload, as described in the PayloadStartupMode enum.
 	 */
-	mode: PayloadStartupMode;
-	/**
-	 * Whether the payload should automatically update its config parameter to 'last' when
-	 * a new mission is uploaded.
-	 */
-	update_config: boolean;
+	config_loading_mode: ConfigLoadingMode;
 	/**
 	 * Require that the payload computer's system date match the configured mission date.
 	 * This is a safety measure to prevent the payload from accidentally starting an old
 	 * mission.
 	 */
-	require_date: boolean;
+	enforce_date: boolean;
 	/**
 	 * A list of STARDOS packages installed on the computer. This cannot be edited directly,
 	 * but will be used by the STARDOS package manager that will eventually exist in StarCommand.
@@ -137,7 +132,7 @@ export interface PayloadParameters {
 /**
  * How the payload will load mission configs.
  */
-export enum PayloadStartupMode {
+export enum ConfigLoadingMode {
 	/**
 	 * The payload will wait for a mission config to be manually uploaded.
 	 * This is the default, preferred mode.
@@ -149,7 +144,7 @@ export enum PayloadStartupMode {
 	 *
 	 * In this mode, the payload will boot into the WAITING_FOR_CONFIG state.
 	 */
-	WAIT_FOR_UPLOAD = 'wait',
+	WAIT_FOR_UPLOAD = 'upload',
 	/**
 	 * The payload will load a mission config stored in the payload's
 	 * persistent storage when it boots. In the event that the specified
@@ -164,7 +159,7 @@ export enum PayloadStartupMode {
 	 * In this mode, the payload will boot into the READY_FOR_MISSION_START state,
 	 * unless the mission config is invalid.
 	 */
-	LOAD_ON_BOOT = 'load',
+	LOAD_ON_BOOT = 'boot',
 	/**
 	 * The payload will load a mission config stored in the payload's
 	 * persistent storage when it receives a mission start command. In the
@@ -180,5 +175,5 @@ export enum PayloadStartupMode {
 	 * regardless of the presence of a valid mission config, as the mission config
 	 * is not loaded until the mission start command is received.
 	 */
-	LOAD_ON_START = 'load-start',
+	LOAD_ON_START = 'start',
 }

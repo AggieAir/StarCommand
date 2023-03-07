@@ -2,6 +2,7 @@
 import { PayloadState } from '@/datastructures/status/payload';
 import { useAlert } from '@/stores/alert';
 import { usePayloadStore } from '@/stores/payload';
+import { useSettingsStore } from '@/stores/settings';
 import { defineComponent } from 'vue';
 import Button from '../widgets/Button.vue';
 
@@ -54,7 +55,6 @@ export default defineComponent({
 			switch (state) {
 				// Abort doesn't make sense in these contexts, as a mission is not running during any of these states.
 				// Don't show the abort button in these states.
-				case PayloadState.CONTROL_INIT: // fallthrough
 				case PayloadState.CONFIG_INIT: // fallthrough
 				case PayloadState.CONTROL_SHUTDOWN: // fallthrough
 				case PayloadState.WAITING_FOR_CONFIG: // fallthrough
@@ -65,9 +65,15 @@ export default defineComponent({
 					return true;
 			}
 		},
+		external_control_override() {
+			return useSettingsStore().settings.control_override;
+		},
+		can_control() {
+			return this.external_control || this.external_control_override;
+		},
 		start_mission_title() {
-			if (this.external_control) {
-				return 'Payload is being controlled externally. Software controls are offline.';
+			if (this.external_control && !this.can_control) {
+				return 'Payload is under pilot control. Software controls are offline.';
 			}
 			if (this.running) {
 				return 'Mission is already running';
@@ -77,8 +83,8 @@ export default defineComponent({
 			}
 		},
 		end_mission_title() {
-			if (this.external_control) {
-				return 'Payload is being controlled externally. Software controls are offline.';
+			if (this.external_control && !this.can_control) {
+				return 'Payload is under pilot control. Software controls are offline.';
 			}
 			if (!this.running) {
 				return 'Mission is not running';
@@ -148,7 +154,7 @@ export default defineComponent({
 		<Button
 			class="start"
 			@click="start"
-			:disabled="!ready || external_control"
+			:disabled="!ready || !can_control"
 			:title="start_mission_title"
 		>
 			Start Mission
@@ -159,7 +165,7 @@ export default defineComponent({
 		<Button
 			class="stop"
 			@click="stop"
-			:disabled="!safe_to_stop || external_control"
+			:disabled="!safe_to_stop || !can_control"
 			:title="end_mission_title"
 			v-else
 		>
