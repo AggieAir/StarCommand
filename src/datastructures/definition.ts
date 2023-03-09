@@ -60,8 +60,8 @@ export type ConfigEntryConstraint = {
 	relation: ConstraintRelation;
 	alert: string;
 	severity: ConstraintSeverity;
-	offset: number | undefined;
-	invert: true | undefined;
+	offset?: number;
+	invert?: true;
 } & (
 	| {
 			type: ConstraintType.LINKED | ConstraintType.CONFIG_LINKED;

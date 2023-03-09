@@ -39,7 +39,11 @@ export default defineComponent({
 			},
 			{
 				target: { name: 'settings' },
-				text: 'Settings',
+				text: 'StarCommand Settings',
+			},
+			{
+				target: { name: 'device-config' },
+				text: 'Device Configuration',
 			},
 		],
 	}),

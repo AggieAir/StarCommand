@@ -8,6 +8,10 @@ import type {
 	ParameterRequest,
 	ParameterResponse,
 } from './datastructures/status/control';
+import type {
+	DeviceAddedMessage,
+	DeviceRemovedMessage,
+} from './datastructures/device_config';
 
 export type MessagePayload =
 	| {
@@ -18,7 +22,9 @@ export type MessagePayload =
 export type IncomingMessage =
 	| IncomingStatusMessage
 	| ParameterResponse
-	| ParameterList;
+	| ParameterList
+	| DeviceAddedMessage
+	| DeviceRemovedMessage;
 export type OutgoingMessage =
 	| ParameterMessage
 	| ControlMessage

@@ -47,6 +47,11 @@ const router = createRouter({
 			name: 'logs',
 			component: () => import('../views/LogView.vue'),
 		},
+		{
+			path: '/device-config',
+			name: 'device-config',
+			component: () => import('../views/DeviceConfigView.vue'),
+		},
 	],
 });
 
