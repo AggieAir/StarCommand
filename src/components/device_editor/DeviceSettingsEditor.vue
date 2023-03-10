@@ -181,3 +181,31 @@ function doSave() {
 		<Button @click="save()">Save Changes</Button>
 	</div>
 </template>
+
+<style lang="scss" scoped>
+.device-settings-editor {
+	display: flex;
+	flex-direction: column;
+	.header {
+		font-size: 1.2rem;
+		font-weight: bold;
+		align-self: center;
+		margin-bottom: 0.5rem;
+		margin-top: 0.4rem;
+	}
+
+	.button {
+		color: var(--color-green);
+		margin-top: 0.5rem;
+		text-align: center;
+	}
+
+	&:not(:first-child)::before {
+		content: '';
+		width: 80%;
+		border-top: 1px solid var(--color-background-mute);
+		margin: auto;
+		margin-top: 0.4rem;
+	}
+}
+</style>

@@ -300,7 +300,9 @@ export class DeviceEditor implements Device {
 			this.settings.payload,
 			`http://${this.ips[0]}:4207/api/settings/payload`
 		);
-		this.settings.payload = newSettings;
+		if (success) {
+			this.settings.payload = newSettings;
+		}
 		return success;
 	}
 
@@ -316,7 +318,9 @@ export class DeviceEditor implements Device {
 			this.settings.copilot,
 			`http://${this.ips[0]}:4207/api/settings/copilot`
 		);
-		this.settings.copilot = newSettings;
+		if (success) {
+			this.settings.copilot = newSettings;
+		}
 		return success;
 	}
 
@@ -329,7 +333,9 @@ export class DeviceEditor implements Device {
 			this.settings.ground,
 			`http://${this.ips[0]}:4207/api/settings/ground`
 		);
-		this.settings.ground = newSettings;
+		if (success) {
+			this.settings.ground = newSettings;
+		}
 		return success;
 	}
 

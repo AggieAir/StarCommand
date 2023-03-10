@@ -91,8 +91,56 @@ onBeforeUnmount(() => {
 		<div class="no-editor" v-if="devices.activeDevice === null">
 			<div>Please select a device to edit.</div>
 		</div>
-		<DeviceSettingsEditor name="payload" humanName="Payload" canBeHybrid />
-		<DeviceSettingsEditor name="copilot" humanName="Copilot" canBeHybrid />
-		<DeviceSettingsEditor name="ground" humanName="Ground Station" />
+		<div class="settings">
+			<DeviceSettingsEditor name="payload" humanName="Payload" canBeHybrid />
+			<DeviceSettingsEditor name="copilot" humanName="Copilot" canBeHybrid />
+			<DeviceSettingsEditor name="ground" humanName="Ground Station" />
+		</div>
 	</div>
 </template>
+
+<style scoped lang="scss">
+.device-editor {
+	display: flex;
+	flex-direction: column;
+	width: 30rem;
+	.header {
+		font-size: 1.5rem;
+		font-weight: bold;
+		align-self: center;
+	}
+
+	.device-selector,
+	.device-connector {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.device-connector {
+		width: calc(100% - 2rem);
+		align-self: center;
+		input {
+			width: 12rem;
+		}
+	}
+
+	select {
+		background-color: var(--color-background-soft);
+		border: none;
+		color: var(--color-text);
+		width: 13rem;
+		&:hover {
+			background-color: var(--color-background-mute);
+		}
+	}
+
+	.no-editor {
+		color: var(--color-background-mute);
+		display: flex;
+		justify-content: center;
+		padding: 2rem;
+		font-size: 1.2rem;
+		font-style: italic;
+	}
+}
+</style>
