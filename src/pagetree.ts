@@ -16,6 +16,7 @@ export const PageTree: PageTreeType = {
 		settings: LEAF,
 		database: LEAF,
 		logs: LEAF,
+		'device-config': LEAF,
 	},
 };
 
