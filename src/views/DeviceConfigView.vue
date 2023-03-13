@@ -54,8 +54,12 @@ watchEffect(() => {
 });
 
 const customConnectionIP = ref('');
-watch(customConnectionIP, (newIP) => {
-	devices.addDevice(newIP);
+watchEffect(() => {
+	if (customConnectionIP.value !== '') {
+		devices.addDevice(customConnectionIP.value);
+		devices.activeDevice?.loadSettings() ??
+			console.warn('Device was not loaded');
+	}
 });
 
 onBeforeUnmount(() => {
