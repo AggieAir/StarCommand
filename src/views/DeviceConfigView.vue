@@ -48,11 +48,9 @@ watch(deviceSelector, (newSelection) => {
 		customConnection.value = true;
 	} else {
 		customConnection.value = false;
+		devices.activeDevice?.loadSettings() ??
+			console.error('Device was not loaded');
 	}
-});
-
-watchEffect(() => {
-	devices.activeDevice?.loadSettings();
 });
 
 const customConnectionIP = ref('');
