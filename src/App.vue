@@ -14,6 +14,7 @@ import PromptBox from './components/widgets/PromptBox.vue';
 import { back } from './pagetree';
 import { useConfigStore } from './stores/config';
 import { enableLogging } from './stores/logs';
+import { useDeviceStore } from './stores/devices';
 
 export default defineComponent({
 	computed: {
@@ -51,6 +52,8 @@ export default defineComponent({
 		PromptBox,
 	},
 	mounted() {
+		// Initialize the device store before the datalink
+		const devices = useDeviceStore();
 		// Connect to the datalink server.
 		const datalink = useDatalink();
 		datalink.connect();
