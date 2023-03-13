@@ -44,6 +44,7 @@ export const useDeviceStore = defineStore('devices', () => {
 	function edit(device: string) {
 		if (devices.value[device] !== undefined) {
 			activeDevice.value = new DeviceEditor(devices.value[device]);
+			activeDevice.value.loadSettings();
 		} else {
 			throw 'Given device does not exist';
 		}
