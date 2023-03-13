@@ -40,16 +40,16 @@ const customConnection = ref(false);
  */
 const deviceSelector: Ref<string | null | undefined> = ref(null);
 
-watch(deviceSelector, (newSelection) => {
-	if (newSelection === null) {
+watchEffect(() => {
+	if (deviceSelector.value === null) {
 		customConnection.value = false;
 		devices.closeEditor();
-	} else if (newSelection === undefined) {
+	} else if (deviceSelector.value === undefined) {
 		customConnection.value = true;
+		devices.closeEditor();
 	} else {
 		customConnection.value = false;
-		devices.activeDevice?.loadSettings() ??
-			console.error('Device was not loaded');
+		devices.edit(deviceSelector.value);
 	}
 });
 
