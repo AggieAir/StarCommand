@@ -54,9 +54,9 @@ watchEffect(() => {
 });
 
 const customConnectionIP = ref('');
-watchEffect(() => {
+watch(customConnectionIP, async () => {
 	if (customConnectionIP.value !== '') {
-		devices.addDevice(customConnectionIP.value);
+		await devices.addDevice(customConnectionIP.value);
 		devices.activeDevice?.loadSettings() ??
 			console.warn('Device was not loaded');
 	}
