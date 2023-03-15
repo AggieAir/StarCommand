@@ -1,6 +1,7 @@
-import { BarObject } from '../rendering';
-import type { ComputerStatus } from './heartbeats';
-import { Status } from './status_enums';
+import { useLogging } from "@/stores/logs";
+import { BarObject } from "../rendering";
+import type { ComputerStatus } from "./heartbeats";
+import { Status } from "./status_enums";
 
 export class Storage {
 	public size: number = 0;
@@ -60,6 +61,8 @@ export class CPU {
 	}
 }
 
+let logging: ReturnType<typeof useLogging> = null as any;
+
 export class Computer {
 	private _timestamp: number | null = null;
 
@@ -71,7 +74,9 @@ export class Computer {
 
 	private _status_code: Status = Status.OFFLINE;
 
-	public constructor(public readonly name: string) {}
+	public constructor(public readonly name: string) {
+		logging = logging ?? useLogging();
+	}
 
 	public get cpus(): Readonly<CPU> {
 		return this._cpus;
@@ -109,23 +114,58 @@ export class Computer {
 	}
 
 	public get main_disk(): Storage | null {
-		return this.disks.get('/opt/stardos/data') ?? this.disks.get('/') ?? null;
+		return this.disks.get("/opt/stardos/data") ?? this.disks.get("/") ?? null;
 	}
 
 	public get online(): boolean {
 		return this._status_code !== Status.OFFLINE;
 	}
 
+	private last_logged = {
+		time: "offline",
+		cpu: "normal",
+		memory: "normal",
+		swap: "normal",
+		disk: "normal",
+	};
+
 	public update_status_code(): Status {
 		const update_time_status = (() => {
 			if (this.time_since_update > 10000) {
+				if (this.last_logged.time !== "long") {
+					this.last_logged.time = "long";
+					logging.flight.warn(
+						"No update from computer",
+						this.name,
+						"in last 10 seconds"
+					);
+				}
 				return Status.ERROR;
 			}
 			if (this.time_since_update > 5000) {
+				if (this.last_logged.time !== "short") {
+					this.last_logged.time = "short";
+					logging.flight.warn(
+						"No update from computer",
+						this.name,
+						"in last 5 seconds"
+					);
+				}
 				return Status.WARNING;
 			}
 			if (this.timestamp === null) {
+				if (this.last_logged.time !== "offline") {
+					this.last_logged.time = "offline";
+					logging.flight.warn("Computer", this.name, "is offline");
+				}
 				return Status.OFFLINE;
+			}
+			if (this.last_logged.time === "offline") {
+				logging.flight.info("Computer", this.name, "online");
+				this.last_logged.time = "online";
+			} else if (this.last_logged.time !== "online") {
+				logging.flight.info("Update from computer", this.name, "received");
+				this.last_logged.time = "online";
 			}
 			return Status.ONLINE;
 		})();
@@ -135,30 +175,72 @@ export class Computer {
 				return Status.ERROR;
 			}
 			if (this.cpus.usage_percent > 200) {
+				if (this.last_logged.cpu !== "avg-high") {
+					this.last_logged.cpu = "avg-high";
+					logging.flight.warn(
+						"CPU usage on all cores for",
+						this.name,
+						"is critical"
+					);
+				}
 				return Status.WARNING;
 			}
 			if (this.cpus.usage.some((usage) => usage > 225)) {
+				if (this.last_logged.cpu !== "one-crit") {
+					this.last_logged.cpu = "one-crit";
+					logging.flight.warn(
+						"CPU usage on one core for",
+						this.name,
+						"is critical"
+					);
+				}
 				return Status.WARNING;
+			}
+			if (this.last_logged.cpu !== "normal") {
+				this.last_logged.cpu = "normal";
+				logging.flight.info("CPU usage for", this.name, "returned to normal");
 			}
 			return Status.ONLINE;
 		})();
 
 		const memory_status = (() => {
+			if (this.memory.is_critical) {
+				if (this.last_logged.memory !== "crit") {
+					this.last_logged.memory = "crit";
+					logging.flight.warn("Memory usage for", this.name, "is critical");
+				}
+				return Status.ERROR;
+			}
 			if (this.memory.is_high) {
+				this.last_logged.memory = "high";
 				return Status.WARNING;
 			}
-			if (this.memory.is_critical) {
-				return Status.ERROR;
+			if (this.last_logged.memory !== "normal") {
+				this.last_logged.memory = "normal";
+				logging.flight.info(
+					"Memory usage for",
+					this.name,
+					"returned to normal"
+				);
 			}
 			return Status.ONLINE;
 		})();
 
 		const swap_status = (() => {
+			if (this.swap.is_critical) {
+				if (this.last_logged.swap !== "crit") {
+					this.last_logged.swap = "crit";
+					logging.flight.warn("Swap usage for", this.name, "is critical");
+				}
+				return Status.ERROR;
+			}
 			if (this.swap.is_high) {
+				this.last_logged.swap = "high";
 				return Status.WARNING;
 			}
-			if (this.swap.is_critical) {
-				return Status.ERROR;
+			if (this.last_logged.swap !== "normal") {
+				this.last_logged.swap = "normal";
+				logging.flight.info("Swap usage for", this.name, "returned to normal");
 			}
 			return Status.ONLINE;
 		})();
@@ -168,10 +250,30 @@ export class Computer {
 				return Status.ERROR;
 			}
 			if ([...this.disks.values()].some((disk) => disk.is_high)) {
+				if (this.last_logged.disk !== "some-high") {
+					this.last_logged.disk = "some-high";
+					logging.flight.warn("Free space on", this.name, "is running low");
+				}
 				return Status.WARNING;
 			}
 			if ([...this.disks.values()].some((disk) => disk.is_critical)) {
+				if (this.last_logged.disk !== "some-crit") {
+					this.last_logged.disk = "some-crit";
+					logging.flight.danger(
+						"Free space on",
+						this.name,
+						"is critically low, recommend mission abort"
+					);
+				}
 				return Status.ERROR;
+			}
+			if (this.last_logged.disk !== "normal") {
+				this.last_logged.disk = "normal";
+				logging.flight.info(
+					"Disk usage on",
+					this.name,
+					"has returned to normal"
+				);
 			}
 			return Status.ONLINE;
 		})();

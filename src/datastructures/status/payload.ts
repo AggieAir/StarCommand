@@ -1,17 +1,19 @@
-import Database, { Table } from '@/database';
+import Database, { Table } from "@/database";
 import {
 	DismissReason,
 	Notification,
 	NotificationUrgency,
-} from '@/notification';
-import { Alert, useAlert } from '@/stores/alert';
-import { useDatalink } from '@/stores/datalink';
-import { useNotifications } from '@/stores/notifications';
-import { usePayloadStore } from '@/stores/payload';
-import { useSettingsStore } from '@/stores/settings';
-import type { MissionConfiguration } from '../configuration';
-import { CaptureGroup } from './capture_group';
-import { Computer } from './computer';
+} from "@/notification";
+import { Alert, useAlert } from "@/stores/alert";
+import { useDatalink } from "@/stores/datalink";
+import { useLogging } from "@/stores/logs";
+import { useNotifications } from "@/stores/notifications";
+import { usePayloadStore } from "@/stores/payload";
+import { useSettingsStore } from "@/stores/settings";
+import type { Nullable } from "@/utility_types";
+import type { MissionConfiguration } from "../configuration";
+import { CaptureGroup } from "./capture_group";
+import { Computer } from "./computer";
 import {
 	message_is_capture_group_heartbeat,
 	message_is_computer_status,
@@ -22,8 +24,8 @@ import {
 	type IncomingStatusMessage,
 	type PayloadHeartbeat,
 	type ProcessingNodeHeartbeatMsg,
-} from './heartbeats';
-import type { ProcessingNode } from './node';
+} from "./heartbeats";
+import type { ProcessingNode } from "./node";
 
 /**
  * An enum representing the overall state of the payload.
@@ -32,6 +34,10 @@ import type { ProcessingNode } from './node';
  * will be from the payload computer's control node.
  */
 export enum PayloadState {
+	/**
+	 * The control node is offline.
+	 */
+	OFFLINE = -129,
 	/**
 	 * The control node is initializing.
 	 */
@@ -106,10 +112,12 @@ export enum PayloadState {
 	ERROR_REBOOT_REQUIRED = -128,
 }
 
-export class Payload {
-	private _state = PayloadState.CONTROL_INIT;
+let logging: ReturnType<typeof useLogging> = null as any;
 
-	private uuids_to_ignore: string[] = [];
+export class Payload {
+	private _state = PayloadState.OFFLINE;
+
+	private uuids_to_ignore: string[] = ["00000000-0000-0000-0000-000000000000"];
 	private _external_control: boolean = false;
 
 	public get external_control(): boolean {
@@ -144,46 +152,50 @@ export class Payload {
 
 	public get state_string(): string {
 		switch (this._state) {
+			case PayloadState.OFFLINE:
+				return "Payload is offline";
 			case PayloadState.CONTROL_INIT:
-				return 'Payload software initializing...';
+				return "Payload software initializing...";
 			case PayloadState.CONFIG_INIT:
-				return 'Parsing mission configuration...';
+				return "Parsing mission configuration...";
 			case PayloadState.SENSOR_INIT:
-				return 'Initializing mission...';
+				return "Initializing mission...";
 			case PayloadState.SENSOR_SHUTDOWN:
-				return 'Waiting for mission shutdown...';
+				return "Waiting for mission shutdown...";
 			case PayloadState.CONTROL_SHUTDOWN:
-				return 'Payload shutting down...';
+				return "Payload shutting down...";
 			case PayloadState.CAPTURING:
-				return 'Collecting data';
+				return "Collecting data";
 			case PayloadState.WAITING_FOR_CONFIG:
-				return 'Waiting for config upload';
+				return "Waiting for config upload";
 			case PayloadState.READY_FOR_MISSION_START:
-				return 'Ready for mission start';
+				return "Ready for mission start";
 			case PayloadState.READY_FOR_SHUTDOWN:
-				return 'Safe to power off';
+				return "Safe to power off";
 			case PayloadState.STANDBY:
-				return 'Standby';
+				return "Standby";
 			case PayloadState.ERROR_NODE_FAILURE:
-				return 'Node failure';
+				return "Node failure";
 			case PayloadState.ERROR_SOFTWARE_INCOMPATIBLE:
-				return 'Incompatible software in mission configuration';
+				return "Incompatible software in mission configuration";
 			case PayloadState.ERROR_DISK_SPACE:
-				return 'Disk is full, cannot store data';
+				return "Disk is full, cannot store data";
 			case PayloadState.ERROR_MEMORY:
-				return 'Memory is full, cannot operate';
+				return "Memory is full, cannot operate";
 			case PayloadState.ERROR_REBOOT_REQUIRED:
-				return 'Payload computer reboot is required';
+				return "Payload computer reboot is required";
 			default:
-				return 'Unknown state';
+				return "Unknown state";
 		}
 	}
 
 	public constructor(private _config?: MissionConfiguration) {
+		logging = logging ?? useLogging();
 		// With lack of config, assume both computers exist.
 		if (!_config) {
-			this._payload_computer = new Computer('Payload');
-			this._copilot_computer = new Computer('Copilot');
+			this._payload_computer = new Computer("Payload");
+			this._copilot_computer = new Computer("Copilot");
+			logging.flight.warn("Payload is not configured");
 			return;
 		}
 		this._payload_computer = new Computer(_config.payload);
@@ -210,7 +222,7 @@ export class Payload {
 		let group = this._capture_groups.get(message.capture_group);
 		let sensor = group?.sensors.get(message.sensor);
 		let node = sensor?.nodes.find(
-			(node) => node.name.replaceAll('-', '_') === message.node
+			(node) => node.name.replaceAll("-", "_") === message.node
 		);
 		return node;
 	}
@@ -230,7 +242,7 @@ export class Payload {
 			}
 			node.parse_heartbeat(message.payload);
 		} else if (message_is_computer_status(message)) {
-			if (message.computer.includes('copilot')) {
+			if (message.computer.includes("copilot")) {
 				this._copilot_computer?.parse_heartbeat(message.payload);
 			} else {
 				this._payload_computer.parse_heartbeat(message.payload);
@@ -251,6 +263,10 @@ export class Payload {
 			console.debug(`Payload's mission is ignored (index ${idx})`);
 			return;
 		}
+		logging.flight.warn(
+			"Payload is not running currently-loaded mission: ",
+			mission_uuid
+		);
 		console.log(
 			`New mission ${mission_uuid} detected, requesting load. Existing mission: ${this.config?.uuid}`
 		);
@@ -264,12 +280,12 @@ export class Payload {
 				);
 			} catch {
 				// We don't have the mission, let the user know.
-				console.warn('Mission is unknown, flagging');
+				console.warn("Mission is unknown, flagging");
 				this.uuids_to_ignore.push(mission_uuid);
 				useNotifications().show(
 					new Notification(
-						'Unknown Mission In Progress',
-						'The mission that the payload is running is not known to this ground station. Payload control and monitoring will be extremely limited. Click here to load an empty mission.',
+						"Unknown Mission In Progress",
+						"The mission that the payload is running is not known to this ground station. Payload control and monitoring will be extremely limited. Click here to load an empty mission.",
 						NotificationUrgency.HIGH,
 						(reason) => {
 							if (reason === DismissReason.USER_CLICK) {
@@ -285,9 +301,9 @@ export class Payload {
 
 		if (config !== undefined) {
 			const result = await new Alert(
-				'Payload is running a different mission',
-				'Would you like to load the mission the payload is running?',
-				[{ label: 'Yes' }, { label: 'No' }]
+				"Payload is running a different mission",
+				"Would you like to load the mission the payload is running?",
+				[{ label: "Yes" }, { label: "No" }]
 			).show();
 			if (result === 0) {
 				usePayloadStore().initialize(config, false);
@@ -303,6 +319,13 @@ export class Payload {
 		if (message.mission_uuid !== this._config?.uuid && !useAlert().is_open) {
 			this.handle_uuid_difference(message.mission_uuid);
 		}
+		if (message.state !== this._state) {
+			const state_name = PayloadState[message.state];
+			logging.flight.info(
+				"Payload control node entering new state",
+				state_name
+			);
+		}
 		this._state = message.state;
 		// External control bit. Indicates that the mission is being controlled by some external device
 		// (usually a switch) and that software commands for start and end mission will be ignored.
@@ -311,72 +334,77 @@ export class Payload {
 	}
 
 	public start_mission(): void {
+		logging.flight.info("Sending mission start request");
 		const payload = useSettingsStore().settings.control_override
 			? JSON.stringify({
-					options: 'override',
+					options: "override",
 			  })
-			: '';
+			: "";
 		useDatalink().send_command({
-			type: 'control',
-			target: '/start_mission',
-			protocol: 'ros',
+			type: "control",
+			target: "/start_mission",
+			protocol: "ros",
 			payload,
 		});
 	}
 
 	public end_mission(): void {
+		logging.flight.info("Sending mission end request");
 		const payload = useSettingsStore().settings.control_override
 			? JSON.stringify({
-					options: 'override',
+					options: "override",
 			  })
-			: '';
+			: "";
 		useDatalink().send_command({
-			type: 'control',
+			type: "control",
 			target: `/end_mission`,
-			protocol: 'ros',
+			protocol: "ros",
 			payload,
 		});
 	}
 
 	public abort_mission(): void {
+		logging.flight.warn("Sending mission abort request");
 		useDatalink().send_command({
-			type: 'control',
-			target: '/end_mission',
-			protocol: 'ros',
+			type: "control",
+			target: "/end_mission",
+			protocol: "ros",
 			payload: JSON.stringify({
-				options: 'abort',
+				options: "abort",
 			}),
 		});
 	}
 
 	public activate(capture_group: string): void {
+		logging.flight.info("Activating capture group", capture_group);
 		const payload = useSettingsStore().settings.control_override
 			? JSON.stringify({
-					options: 'override',
+					options: "override",
 			  })
-			: '';
+			: "";
 		useDatalink().send_command({
-			type: 'control',
-			target: `/${this.config?.aircraft?.name.toLowerCase() ?? 'aircraft'}/${
+			type: "control",
+			target: `/${this.config?.aircraft?.name.toLowerCase() ?? "aircraft"}/${
 				this.payload_computer.name
 			}/${capture_group}/activate`,
-			protocol: 'ros',
+			protocol: "ros",
 			payload,
 		});
 	}
 
 	public deactivate(capture_group: string): void {
+		logging.flight.info("Deactivating capture group", capture_group);
 		const payload = useSettingsStore().settings.control_override
 			? JSON.stringify({
-					options: 'override',
+					options: "override",
 			  })
-			: '';
+			: "";
 		useDatalink().send_command({
-			type: 'control',
-			target: `/${this.config?.aircraft?.name.toLowerCase() ?? 'aircraft'}/${
+			type: "control",
+			target: `/${this.config?.aircraft?.name.toLowerCase() ?? "aircraft"}/${
 				this.payload_computer.name
 			}/${capture_group}/deactivate`,
-			protocol: 'ros',
+			protocol: "ros",
 			payload,
 		});
 	}

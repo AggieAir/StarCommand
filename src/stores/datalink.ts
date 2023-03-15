@@ -1,68 +1,68 @@
-import type { IncomingMessage, OutgoingMessage } from '@/datalink';
-import { defineStore } from 'pinia';
-import { useNotifications } from './notifications';
+import type { IncomingMessage, OutgoingMessage } from "@/datalink";
+import { defineStore } from "pinia";
+import { useNotifications } from "./notifications";
 import {
 	DismissReason,
 	Notification,
 	NotificationUrgency,
-} from '@/notification';
-import router from '@/router';
+} from "@/notification";
+import router from "@/router";
 import type {
 	ConfigResponse,
 	ControlMessage,
 	ParameterList,
 	ParameterResponse,
-} from '@/datastructures/status/control';
-import type { MissionConfiguration } from '@/datastructures/configuration';
-import { useSettingsStore } from './settings';
+} from "@/datastructures/status/control";
+import type { MissionConfiguration } from "@/datastructures/configuration";
+import { useSettingsStore } from "./settings";
 
 const telemetry_no_addr_notif = new Notification(
-	'Telemetry server address not set.',
-	'StarCommand needs a separate server process in order to receive telemetry from the payload. Click here to set the address for this server.',
+	"Telemetry server address not set.",
+	"StarCommand needs a separate server process in order to receive telemetry from the payload. Click here to set the address for this server.",
 	NotificationUrgency.CRITICAL,
 	(reason) => {
 		if (reason === DismissReason.USER_CLICK) {
-			router.push({ name: 'settings' });
+			router.push({ name: "settings" });
 		}
 	}
 );
 
 const config_no_addr_notif = new Notification(
-	'Configuration server address not set.',
-	'StarCommand needs a separate server process in order to configure the payload. Click here to set the address for this server.',
+	"Configuration server address not set.",
+	"StarCommand needs a separate server process in order to configure the payload. Click here to set the address for this server.",
 	NotificationUrgency.CRITICAL,
 	(reason) => {
 		if (reason === DismissReason.USER_CLICK) {
-			router.push({ name: 'settings' });
+			router.push({ name: "settings" });
 		}
 	}
 );
 
 const telemetry_offline_notif = new Notification(
-	'Telemetry server is offline.',
-	'The payload telemetry server is offline. Please check your connection and try again.',
+	"Telemetry server is offline.",
+	"The payload telemetry server is offline. Please check your connection and try again.",
 	NotificationUrgency.CRITICAL,
 	(reason) => {
 		if (reason === DismissReason.USER_CLICK) {
-			router.push({ name: 'settings' });
+			router.push({ name: "settings" });
 		}
 	}
 );
 
 const config_offline_notif = new Notification(
-	'Configuration server is offline.',
-	'The payload configuration server is offline. Please check your connection and try again.',
+	"Configuration server is offline.",
+	"The payload configuration server is offline. Please check your connection and try again.",
 	NotificationUrgency.CRITICAL,
 	(reason) => {
 		if (reason === DismissReason.USER_CLICK) {
-			router.push({ name: 'settings' });
+			router.push({ name: "settings" });
 		}
 	}
 );
 
 const online_notification = new Notification(
-	'Communication servers are online.',
-	'StarCommand can now communicate with the payload.',
+	"Communication servers are online.",
+	"StarCommand can now communicate with the payload.",
 	NotificationUrgency.LOW
 );
 
@@ -90,7 +90,7 @@ export interface ComputerConnection {
 }
 
 export const useDatalink = defineStore({
-	id: 'datalink',
+	id: "datalink",
 	state: () => {
 		return {
 			/**
@@ -163,22 +163,22 @@ export const useDatalink = defineStore({
 			// 	this.config_port
 			// );
 
-			this.telemetry_connection?.addEventListener('open', () => {
+			this.telemetry_connection?.addEventListener("open", () => {
 				this.telemetry_connected = true;
 				if (this.config_connected) {
 					useNotifications().show(online_notification);
 				}
 			});
-			this.telemetry_connection?.addEventListener('close', () => {
+			this.telemetry_connection?.addEventListener("close", () => {
 				this.telemetry_connected = false;
 			});
-			this.telemetry_connection?.addEventListener('error', () => {
+			this.telemetry_connection?.addEventListener("error", () => {
 				this.telemetry_connected = false;
 				useNotifications().show(telemetry_offline_notif);
 			});
-			this.telemetry_connection?.addEventListener('message', (msg) => {
+			this.telemetry_connection?.addEventListener("message", (msg) => {
 				const content = JSON.parse(msg.data, (key, value) => {
-					if (key === 'data') {
+					if (key === "data") {
 						return new Uint8Array(value).buffer;
 					}
 					return value;
@@ -187,28 +187,6 @@ export const useDatalink = defineStore({
 			});
 
 			return;
-
-			this.config_connection?.addEventListener('open', () => {
-				this.config_connected = true;
-				if (this.telemetry_connected) {
-					useNotifications().show(online_notification);
-				}
-			});
-			this.config_connection?.addEventListener('close', () => {
-				this.config_connected = false;
-			});
-			this.config_connection?.addEventListener('error', () => {
-				this.config_connected = false;
-				useNotifications().show(config_offline_notif);
-			});
-			this.config_connection?.addEventListener('message', (msg) => {
-				const content = JSON.parse(msg.data);
-				if (content.type === 'discovery') {
-					this.connected_computers = content.computers;
-				} else {
-					this.config_callbacks.forEach((callback) => callback(content));
-				}
-			});
 		},
 		disconnect_telemetry() {
 			if (this.telemetry_connection) {
@@ -226,7 +204,7 @@ export const useDatalink = defineStore({
 		 */
 		send_command(command: ControlMessage) {
 			if (!this.telemetry_connected) {
-				console.error('Telemetry server is offline, cannot send command.');
+				console.error("Telemetry server is offline, cannot send command.");
 				return;
 			}
 			this.telemetry_connection?.send(JSON.stringify(command));
@@ -252,7 +230,7 @@ export const useDatalink = defineStore({
 		},
 		async upload_config(config: MissionConfiguration) {
 			if (!this.config_connected) {
-				console.error('Config server is offline, cannot upload config.');
+				console.error("Config server is offline, cannot upload config.");
 				return;
 			}
 			return new Promise<void>((resolve) => {
@@ -280,10 +258,10 @@ export const useDatalink = defineStore({
 					return group;
 				});
 				const msg: ControlMessage = {
-					type: 'control',
-					protocol: 'ros',
+					type: "control",
+					protocol: "ros",
 					payload: JSON.stringify(config),
-					target: '/set_config',
+					target: "/set_config",
 				};
 				this.telemetry_connection?.send(JSON.stringify(msg));
 				resolve();

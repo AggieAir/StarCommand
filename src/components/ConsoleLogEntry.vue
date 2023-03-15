@@ -1,11 +1,11 @@
 <script lang="ts">
-import { LogSeverity, type LogEntry } from '@/stores/logs';
-import { defineComponent, type PropType } from 'vue';
+import { LogSeverity, type ConsoleLogEntry } from "@/stores/logs";
+import { defineComponent, type PropType } from "vue";
 
 export default defineComponent({
 	props: {
 		entry: {
-			type: Object as PropType<LogEntry>,
+			type: Object as PropType<ConsoleLogEntry>,
 			required: true,
 		},
 	},
@@ -13,13 +13,13 @@ export default defineComponent({
 		severity_class() {
 			switch (this.entry.severity) {
 				case LogSeverity.DEBUG:
-					return 'debug';
+					return "debug";
 				case LogSeverity.INFO:
-					return 'info';
+					return "info";
 				case LogSeverity.WARN:
-					return 'warn';
+					return "warn";
 				case LogSeverity.ERROR:
-					return 'error';
+					return "error";
 			}
 		},
 		origin() {
@@ -31,10 +31,10 @@ export default defineComponent({
 				return undefined;
 			}
 			let [path_to_file, others] =
-				this.entry.stack_trace[0].location?.split('?');
-			if (path_to_file?.slice(0, 8) === 'debugger') {
+				this.entry.stack_trace[0].location?.split("?");
+			if (path_to_file?.slice(0, 8) === "debugger") {
 				others = path_to_file;
-				path_to_file = 'console';
+				path_to_file = "console";
 			}
 			let _, line, column;
 			if (others === undefined) {
@@ -47,7 +47,7 @@ export default defineComponent({
 				) {
 					return undefined;
 				}
-				const file_parts = path_to_file.split('/');
+				const file_parts = path_to_file.split("/");
 				if (file_parts.length === 0) {
 					return undefined;
 				}
@@ -60,11 +60,11 @@ export default defineComponent({
 			if (path_to_file === undefined || others === undefined) {
 				return undefined;
 			}
-			[_, line, column] = others.split(':');
+			[_, line, column] = others.split(":");
 			if (line === undefined || column === undefined) {
 				return undefined;
 			}
-			const file_parts = path_to_file.split('/');
+			const file_parts = path_to_file.split("/");
 			if (file_parts.length === 0) {
 				return undefined;
 			}
@@ -75,7 +75,7 @@ export default defineComponent({
 			];
 		},
 		message() {
-			return this.entry.message.join(' ');
+			return this.entry.message.join(" ");
 		},
 		timestamp() {
 			function pad(value: number): string {
@@ -127,6 +127,10 @@ export default defineComponent({
 	align-items: center;
 	gap: 1rem;
 	font-family: monospace;
+
+	.timestamp {
+		user-select: none;
+	}
 
 	.origin {
 		color: var(--color-text);

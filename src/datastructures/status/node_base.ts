@@ -2,10 +2,11 @@ import type {
 	NodeDataFieldDefinition,
 	NodeErrorDefinition,
 	NodeStateDefinition,
-} from '../definition';
-import type { Heartbeat } from './heartbeats';
-import { Status } from './status_enums';
-import * as States from './state';
+} from "../definition";
+import type { Heartbeat } from "./heartbeats";
+import { Status } from "./status_enums";
+import * as States from "./state";
+import { useLogging } from "@/stores/logs";
 
 /**
  * The overall state of a node, as reported by its heartbeats.
@@ -57,45 +58,45 @@ export function parse_data_field(
 	let size = 1;
 	const result = (() => {
 		switch (definition.type) {
-			case 'uint8':
+			case "uint8":
 				return new Uint8Array(view, 0, 1)[0];
-			case 'uint16':
+			case "uint16":
 				size = 2;
 				return new Uint16Array(view, 0, 1)[0];
-			case 'uint32':
+			case "uint32":
 				size = 4;
 				return new Uint32Array(view, 0, 1)[0];
-			case 'uint64':
+			case "uint64":
 				size = 8;
 				const uint64 = new Uint32Array(view, 0, 2);
 				return uint64[0] << (32 + uint64[1]);
-			case 'int8':
+			case "int8":
 				return new Int8Array(view, 0, 1)[0];
-			case 'int16':
+			case "int16":
 				size = 2;
 				return new Int16Array(view, 0, 1)[0];
-			case 'int32':
+			case "int32":
 				size = 4;
 				return new Int32Array(view, 0, 1)[0];
-			case 'int64':
+			case "int64":
 				size = 8;
 				const int64 = new Int32Array(view, 0, 2);
 				return int64[0] << (32 + int64[1]);
-			case 'float':
+			case "float":
 				size = 4;
 				return new Float32Array(view, 0, 1)[0];
-			case 'double':
+			case "double":
 				size = 8;
 				return new Float64Array(view, 0, 1)[0];
-			case 'string':
+			case "string":
 				size = definition.size;
 				return new TextDecoder().decode(
 					new Uint8Array(view, 0, definition.size)
 				);
-			case 'enum':
+			case "enum":
 				const enum_definition = definition.enum_definition;
 				if (enum_definition === undefined) {
-					throw new Error('Enum definition not found');
+					throw new Error("Enum definition not found");
 				}
 				return enum_definition[new Uint8Array(view, 0, 1)[0]];
 			default:
@@ -127,6 +128,8 @@ export interface Configuration<DefinitionType extends Definition> {
 	name: string;
 }
 
+var logging: ReturnType<typeof useLogging> = null as any;
+
 export abstract class StardosNode<
 	ConfigType extends Configuration<DefinitionType>,
 	DefinitionType extends Definition
@@ -149,6 +152,10 @@ export abstract class StardosNode<
 
 	public get defined(): boolean {
 		return this._definition !== undefined;
+	}
+
+	public get state_definition(): NodeStateDefinition | undefined {
+		return this._definition?.states[this._state.state];
 	}
 
 	private _name: string;
@@ -221,6 +228,7 @@ export abstract class StardosNode<
 	}
 
 	protected constructor(name: string) {
+		logging = logging ?? useLogging();
 		this._name = name;
 	}
 
@@ -384,7 +392,16 @@ export abstract class StardosNode<
 	}
 
 	public parse_heartbeat(heartbeat: Heartbeat) {
+		let new_state = heartbeat.state !== this._state.state;
 		this._state.state = heartbeat.state;
+		if (new_state) {
+			logging.flight.info(
+				"Node",
+				this._name,
+				"entered new state",
+				this.state_definition?.name ?? this._state.state.toString()
+			);
+		}
 		const warning_num = heartbeat.errors;
 		this._state.errors = (() => {
 			const bits = ([] as boolean[])
@@ -407,7 +424,7 @@ export abstract class StardosNode<
 			return [];
 		}
 		const fields =
-			this._definition.data_fields ?? console.debug('No data fields') ?? [];
+			this._definition.data_fields ?? console.debug("No data fields") ?? [];
 		let offset = 0;
 		return fields.map((field) => {
 			try {
@@ -417,7 +434,7 @@ export abstract class StardosNode<
 			} catch (e) {
 				console.error(e);
 				offset += field.size;
-				return { definition: field, value: 'error decoding data' };
+				return { definition: field, value: "error decoding data" };
 			}
 		});
 	}
@@ -425,5 +442,6 @@ export abstract class StardosNode<
 	public mark_as_offline() {
 		this._state.state = -129;
 		this._timestamp = null;
+		logging.flight.warn("Node", this._name, "is offline");
 	}
 }

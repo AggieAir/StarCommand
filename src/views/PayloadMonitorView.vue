@@ -1,22 +1,22 @@
 <script lang="ts">
-import Database, { Table } from '@/database';
-import type { MissionConfiguration } from '@/datastructures/configuration';
+import Database, { Table } from "@/database";
+import type { MissionConfiguration } from "@/datastructures/configuration";
 import {
 	DismissReason,
 	Notification,
 	NotificationUrgency,
-} from '@/notification';
-import { useNotifications } from '@/stores/notifications';
-import { usePayloadStore } from '@/stores/payload';
-import { defineComponent } from 'vue';
-import ComputerStatus from '@/components/payload/Computer.vue';
-import MissionOverview from '../components/payload/overview/MissionOverview.vue';
-import { type Payload, PayloadState } from '@/datastructures/status/payload';
-import Tabs from '../components/widgets/Tabs.vue';
-import Button from '../components/widgets/Button.vue';
-import Control from '../components/payload/Control.vue';
-import type { CaptureGroup } from '@/datastructures/status/capture_group';
-import CaptureGroupDetail from '../components/payload/details/CaptureGroupDetail.vue';
+} from "@/notification";
+import { useNotifications } from "@/stores/notifications";
+import { usePayloadStore } from "@/stores/payload";
+import { defineComponent } from "vue";
+import ComputerStatus from "@/components/payload/Computer.vue";
+import MissionOverview from "../components/payload/overview/MissionOverview.vue";
+import { type Payload, PayloadState } from "@/datastructures/status/payload";
+import Tabs from "../components/widgets/Tabs.vue";
+import Button from "../components/widgets/Button.vue";
+import Control from "../components/payload/Control.vue";
+import type { CaptureGroup } from "@/datastructures/status/capture_group";
+import CaptureGroupDetail from "../components/payload/details/CaptureGroupDetail.vue";
 
 export default defineComponent({
 	setup() {
@@ -24,7 +24,7 @@ export default defineComponent({
 		return { payloadStore, PayloadState };
 	},
 	async mounted() {
-		const config_uuid = localStorage.getItem('config_uuid');
+		const config_uuid = localStorage.getItem("config_uuid");
 		if (config_uuid) {
 			const db = await Database.get_database();
 			const config = await db.get<MissionConfiguration>(
@@ -35,25 +35,25 @@ export default defineComponent({
 				this.payloadStore.initialize(config);
 				return;
 			} else {
-				localStorage.removeItem('config_uuid');
+				localStorage.removeItem("config_uuid");
 				useNotifications().show(
 					new Notification(
-						'Mission not found.',
-						'The mission loaded from the last session was not found in the database. An unconfigured payload monitor will be used.',
+						"Mission not found.",
+						"The mission loaded from the last session was not found in the database. An unconfigured payload monitor will be used.",
 						NotificationUrgency.HIGH
 					)
 				);
 			}
 		} else {
-			console.warn('No persistent configuration found');
+			console.warn("No persistent configuration found");
 			useNotifications().show(
 				new Notification(
-					'No mission configuration loaded.',
+					"No mission configuration loaded.",
 					'No prior mission was loaded. Click the "Load Mission" button to load a mission configuration. In the meantime, an unconfigured payload monitor will be used.',
 					NotificationUrgency.NORMAL,
 					(reason) => {
 						if (reason === DismissReason.USER_CLICK) {
-							this.$router.push({ name: 'load' });
+							this.$router.push({ name: "load" });
 						}
 					},
 					null
@@ -75,8 +75,8 @@ export default defineComponent({
 			const capture_groups = this.capture_groups;
 			return [
 				{
-					name: 'overview',
-					text: 'Overview',
+					name: "overview",
+					text: "Overview",
 				},
 				...capture_groups.map(([name]: [string, any]) => ({
 					name,
@@ -103,7 +103,7 @@ export default defineComponent({
 	<div class="monitor-view">
 		<div class="monitor-header">
 			<span v-if="payloadStore.payload" class="monitor-title">
-				{{ payloadStore.payload.config?.name ?? 'Mission' }} Payload Monitor
+				{{ payloadStore.payload.config?.name ?? "" }} Payload Monitor
 			</span>
 			<span v-else class="monitor-title">Payload Monitor</span>
 			<span class="monitor-subtitle" v-if="payload">
@@ -171,7 +171,7 @@ export default defineComponent({
 				}
 
 				&:hover::after {
-					content: 'End Mission';
+					content: "End Mission";
 					color: var(--color-error);
 				}
 			}
@@ -182,7 +182,7 @@ export default defineComponent({
 				}
 
 				&:hover::after {
-					content: 'Start Mission';
+					content: "Start Mission";
 					color: var(--color-success);
 				}
 			}

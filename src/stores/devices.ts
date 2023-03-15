@@ -1,23 +1,17 @@
-import Database, { Table } from '@/database';
-import type { IncomingMessage } from '@/datalink';
-import type { MissionConfiguration } from '@/datastructures/configuration';
+import Database, { Table } from "@/database";
+import type { IncomingMessage } from "@/datalink";
+import type { MissionConfiguration } from "@/datastructures/configuration";
 import {
 	DeviceEditor,
-	type CopilotSettings,
 	type Device,
 	type DeviceList,
-	type DeviceType,
-	type GroundSettings,
-	type PayloadSettings,
-} from '@/datastructures/device_config';
-import { Notification, NotificationUrgency } from '@/notification';
-import type { Nullable, Optional } from '@/utility_types';
-import { defineStore } from 'pinia';
-import { computed, reactive, ref, unref, type Ref } from 'vue';
-import { useDatalink } from './datalink';
-import { useNotifications } from './notifications';
+} from "@/datastructures/device_config";
+import type { Nullable } from "@/utility_types";
+import { defineStore } from "pinia";
+import { computed, ref, type Ref } from "vue";
+import { useDatalink } from "./datalink";
 
-export const useDeviceStore = defineStore('devices', () => {
+export const useDeviceStore = defineStore("devices", () => {
 	/**
 	 * Dictionary mapping known device hostnames to their details objects
 	 */
@@ -46,7 +40,7 @@ export const useDeviceStore = defineStore('devices', () => {
 			activeDevice.value = new DeviceEditor(devices.value[device]);
 			activeDevice.value.loadSettings();
 		} else {
-			throw 'Given device does not exist';
+			throw "Given device does not exist";
 		}
 	}
 
@@ -91,18 +85,18 @@ export const useDeviceStore = defineStore('devices', () => {
 	 */
 	async function fetchMissions(device: Device): Promise<string[]> {
 		if (
-			device.computer_type !== 'payload' &&
-			device.computer_type !== 'hybrid'
+			device.computer_type !== "payload" &&
+			device.computer_type !== "hybrid"
 		) {
-			throw 'Device is not a payload, so it cannot list stored missions';
+			throw "Device is not a payload, so it cannot list stored missions";
 		}
 		const response = await fetch(`http://${device.ips[0]}:4207/api/missions`);
 		const mission_uuids: string[] = await response.json();
 		mission_uuids.sort((a, b) => {
-			if (a == 'latest') {
+			if (a == "latest") {
 				return -1;
 			}
-			if (b == 'latest') {
+			if (b == "latest") {
 				return 1;
 			}
 			return a.localeCompare(b);
@@ -129,13 +123,13 @@ export const useDeviceStore = defineStore('devices', () => {
 	const datalink = useDatalink();
 	datalink.bind_telemetry_callback((msg: IncomingMessage) => {
 		switch (msg.type) {
-			case 'computer_discovered':
+			case "computer_discovered":
 				devices.value[msg.hostname] = {
 					ips: msg.ips,
 					computer_type: msg.computer_type,
 				};
 				break;
-			case 'computer_removed':
+			case "computer_removed":
 				delete devices.value[msg.hostname];
 				break;
 		}

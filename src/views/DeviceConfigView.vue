@@ -2,14 +2,12 @@
 import DeviceSettingsEditor from '@/components/device_editor/DeviceSettingsEditor.vue';
 import FieldInput from '@/components/fields/FieldInput.vue';
 import { useDeviceStore } from '@/stores/devices';
-import type { Nullable } from '@/utility_types';
 import {
 	computed,
 	onBeforeUnmount,
 	ref,
 	watch,
 	watchEffect,
-	type ComputedRef,
 	type Ref,
 } from 'vue';
 

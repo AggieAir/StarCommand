@@ -1,16 +1,17 @@
-import type { MissionConfiguration } from '@/datastructures/configuration';
-import type { IncomingStatusMessage } from '@/datastructures/status/heartbeats';
-import { Payload, PayloadState } from '@/datastructures/status/payload';
-import type { Heartbeat, HeartbeatType } from '@/datastructures/status_input';
-import { Notification, NotificationUrgency } from '@/notification';
-import { defineStore } from 'pinia';
-import { useAlert } from './alert';
-import { useDatalink } from './datalink';
-import { useNotifications } from './notifications';
-import { useSettingsStore } from './settings';
+import type { MissionConfiguration } from "@/datastructures/configuration";
+import type { IncomingStatusMessage } from "@/datastructures/status/heartbeats";
+import { Payload, PayloadState } from "@/datastructures/status/payload";
+import type { Heartbeat, HeartbeatType } from "@/datastructures/status_input";
+import { Notification, NotificationUrgency } from "@/notification";
+import { defineStore } from "pinia";
+import { useAlert } from "./alert";
+import { useDatalink } from "./datalink";
+import { useLogging } from "./logs";
+import { useNotifications } from "./notifications";
+import { useSettingsStore } from "./settings";
 
 export const usePayloadStore = defineStore({
-	id: 'payload',
+	id: "payload",
 	state: () => {
 		useDatalink().bind_telemetry_callback((msg) => {
 			usePayloadStore().payload?.handle_message(msg as IncomingStatusMessage);
@@ -34,22 +35,22 @@ export const usePayloadStore = defineStore({
 		) {
 			console.log(`manual_load: ${manual_load}`);
 			if (config?.uuid) {
-				localStorage.setItem('config_uuid', config.uuid);
+				localStorage.setItem("config_uuid", config.uuid);
 			}
 			if (config) {
 				this.payload = new Payload(config);
 				if (useDatalink().telemetry_connected && manual_load) {
-					console.log('Uploading config');
+					console.log("Uploading config");
 					const result = await useAlert().open({
-						title: 'Upload?',
+						title: "Upload?",
 						message:
-							'Would you like to upload this configuration to the payload?',
+							"Would you like to upload this configuration to the payload?",
 						buttons: [
 							{
-								label: 'Yes',
+								label: "Yes",
 							},
 							{
-								label: 'No',
+								label: "No",
 								dangerous: true,
 							},
 						],
@@ -76,18 +77,18 @@ export const usePayloadStore = defineStore({
 							return group;
 						});
 						useDatalink().send_command({
-							type: 'control',
-							target: '/set_config',
+							type: "control",
+							target: "/set_config",
 							payload: JSON.stringify(config),
-							protocol: 'ros',
+							protocol: "ros",
 						});
 					}
 				} else if (manual_load) {
-					console.log('cannot upload config');
+					console.log("cannot upload config");
 					useNotifications().show(
 						new Notification(
-							'Cannot upload configuration',
-							'You must be connected to the datalink to upload a configuration.',
+							"Cannot upload configuration",
+							"You must be connected to the datalink to upload a configuration.",
 							NotificationUrgency.HIGH,
 							undefined,
 							10

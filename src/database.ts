@@ -398,4 +398,13 @@ export default class Database {
 			request.onerror = (event) => reject(event);
 		});
 	}
+
+	get_by_index<DataType>(table: Table, index_name: string, key: string): Promise<DataType[]> {
+		return new Promise((resolve, reject) => {
+			const index = this.get_object_store(table).index(index_name);
+			const request = index.getAll(key);
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = (event) => reject(event);
+		})
+	}
 }

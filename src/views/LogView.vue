@@ -1,13 +1,13 @@
 <script lang="ts">
-import { LogSeverity, useLogStore } from '@/stores/logs';
-import { defineComponent } from 'vue';
-import LogEntry from '../components/LogEntry.vue';
-import Button from '../components/widgets/Button.vue';
+import { LogSeverity, useLogging } from "@/stores/logs";
+import { defineComponent } from "vue";
+import LogEntry from "../components/ConsoleLogEntry.vue";
+import Button from "../components/widgets/Button.vue";
 
 export default defineComponent({
 	computed: {
 		log_entries() {
-			return useLogStore().log_entries.filter(({ severity }) => {
+			return useLogging().log_entries.filter(({ severity }) => {
 				switch (severity) {
 					case LogSeverity.DEBUG:
 						return this.debug;
@@ -25,27 +25,27 @@ export default defineComponent({
 			});
 		},
 		debug_entries() {
-			return useLogStore().log_entries.filter(
+			return useLogging().log_entries.filter(
 				({ severity }) => severity === LogSeverity.DEBUG
 			);
 		},
 		level_log_entries() {
-			return useLogStore().log_entries.filter(
+			return useLogging().log_entries.filter(
 				({ severity }) => severity === LogSeverity.LOG
 			);
 		},
 		info_entries() {
-			return useLogStore().log_entries.filter(
+			return useLogging().log_entries.filter(
 				({ severity }) => severity === LogSeverity.INFO
 			);
 		},
 		warn_entries() {
-			return useLogStore().log_entries.filter(
+			return useLogging().log_entries.filter(
 				({ severity }) => severity === LogSeverity.WARN
 			);
 		},
 		error_entries() {
-			return useLogStore().log_entries.filter(
+			return useLogging().log_entries.filter(
 				({ severity }) => severity === LogSeverity.ERROR
 			);
 		},
@@ -64,7 +64,7 @@ export default defineComponent({
 <template>
 	<div class="logs">
 		<div class="header">
-			<span class="title">Logs</span>
+			<span class="title">Application Logs</span>
 			<Button
 				class="selector"
 				:class="{ active: error }"

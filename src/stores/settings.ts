@@ -1,45 +1,45 @@
 import {
 	check_constraint,
 	type ConfigEntries,
-} from '@/datastructures/configuration';
+} from "@/datastructures/configuration";
 import {
 	ConfigEntryType,
 	type StarCommandSettingDefinition,
-} from '@/datastructures/definition';
-import { defineStore } from 'pinia';
+} from "@/datastructures/definition";
+import { defineStore } from "pinia";
 
 const settings: Readonly<StarCommandSettingDefinition[]> = [
 	{
-		name: 'telemetry_address',
-		human_name: 'Telemetry Address',
-		description: 'Address of the StarCommand telemetry server',
+		name: "telemetry_address",
+		human_name: "Telemetry Address",
+		description: "Address of the StarCommand telemetry server",
 		type: ConfigEntryType.STRING,
-		default: 'localhost',
+		default: "localhost",
 		required: false,
 		persistent: true,
 	},
 	{
-		name: 'telemetry_port',
-		human_name: 'Telemetry Port',
-		description: 'Port that the StarCommand telemetry server is listening on',
+		name: "telemetry_port",
+		human_name: "Telemetry Port",
+		description: "Port that the StarCommand telemetry server is listening on",
 		type: ConfigEntryType.INTEGER,
 		default: 8080,
 		required: false,
 		persistent: true,
 	},
 	{
-		name: 'control_override',
-		human_name: 'Enable Control Override',
+		name: "control_override",
+		human_name: "Enable Control Override",
 		description:
-			'Whether or not StarCommand will send payload commands that override pilot control',
+			"Whether or not StarCommand will send payload commands that override pilot control",
 		type: ConfigEntryType.BOOLEAN,
 		default: false,
 		required: false,
 		persistent: true,
 	},
 	{
-		name: 'abort_enabled',
-		human_name: 'Enable Mission Abort',
+		name: "abort_enabled",
+		human_name: "Enable Mission Abort",
 		description:
 			"Enables StarCommand's mission abort functionality. CAN LEAD TO DATA LOSS",
 		type: ConfigEntryType.BOOLEAN,
@@ -47,10 +47,20 @@ const settings: Readonly<StarCommandSettingDefinition[]> = [
 		required: false,
 		persistent: false,
 	},
+	{
+		name: "save_console_logs",
+		human_name: "Enable Application Logging",
+		description:
+			"Enables capturing of console logs and redirection to the logging manager. Can cause high memory usage.",
+		type: ConfigEntryType.BOOLEAN,
+		default: false,
+		required: false,
+		persistent: true,
+	},
 ];
 
 export const useSettingsStore = defineStore({
-	id: 'settings',
+	id: "settings",
 	state: () => ({
 		definitions: settings,
 		settings: new Proxy(
@@ -71,7 +81,7 @@ export const useSettingsStore = defineStore({
 						})();
 						switch (definition.type) {
 							case ConfigEntryType.BOOLEAN:
-								target[prop] = stored === 'true';
+								target[prop] = stored === "true";
 								break;
 							case ConfigEntryType.ENUM: // fallthrough
 							case ConfigEntryType.INTEGER:
@@ -90,8 +100,8 @@ export const useSettingsStore = defineStore({
 								break;
 							case ConfigEntryType.STRING:
 								if (stored === null) {
-									target[prop] = definition.default ?? '';
-								} else if (stored === 'undefined') {
+									target[prop] = definition.default ?? "";
+								} else if (stored === "undefined") {
 									target[prop] = undefined;
 								} else {
 									target[prop] = stored;
@@ -118,11 +128,11 @@ export const useSettingsStore = defineStore({
 					if (valid) {
 						target[prop] = value;
 						if (definition.persistent) {
-							localStorage.setItem(`settings.${prop}`, value?.toString() ?? '');
+							localStorage.setItem(`settings.${prop}`, value?.toString() ?? "");
 						} else {
 							sessionStorage.setItem(
 								`settings.${prop}`,
-								value?.toString() ?? ''
+								value?.toString() ?? ""
 							);
 						}
 					}
@@ -143,10 +153,10 @@ function validate_setting(
 	}
 
 	// Basic checks that are required for every non-boolean type
-	if (setting.required && (value === '' || value === undefined)) {
+	if (setting.required && (value === "" || value === undefined)) {
 		// An empty required setting is invalid
 		return [false, undefined];
-	} else if (value === '' || value === undefined) {
+	} else if (value === "" || value === undefined) {
 		// An empty non-required setting is valid
 		return [true, value];
 	}
@@ -156,7 +166,7 @@ function validate_setting(
 	// Type-specific checking
 	switch (setting.type) {
 		case ConfigEntryType.INTEGER:
-			const int = typeof value === 'number' ? value : parseInt(value as string);
+			const int = typeof value === "number" ? value : parseInt(value as string);
 			if (isNaN(int)) {
 				// Must be a number
 				return [false, undefined];
@@ -169,7 +179,7 @@ function validate_setting(
 			break;
 		case ConfigEntryType.FLOAT:
 			const float =
-				typeof value === 'number' ? value : parseFloat(value as string);
+				typeof value === "number" ? value : parseFloat(value as string);
 			if (isNaN(float)) {
 				// Must be a number
 				return [false, undefined];

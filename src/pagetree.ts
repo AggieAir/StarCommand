@@ -1,6 +1,6 @@
-import type { Router } from 'vue-router';
+import type { Router } from "vue-router";
 
-export const LEAF = Symbol('leaf-page');
+export const LEAF = Symbol("leaf-page");
 
 export interface PageTreeType {
 	[name: string]: PageTreeType | typeof LEAF;
@@ -10,18 +10,18 @@ export const PageTree: PageTreeType = {
 	home: {
 		load: LEAF,
 		config: {
-			'new-config': LEAF,
-			'edit-config': LEAF,
+			"new-config": LEAF,
+			"edit-config": LEAF,
 		},
 		settings: LEAF,
 		database: LEAF,
 		logs: LEAF,
-		'device-config': LEAF,
+		"device-config": LEAF,
 	},
 };
 
 export function get_parent(name: string) {
-	return find_parent(PageTree, 'root', name);
+	return find_parent(PageTree, "root", name);
 }
 
 function find_parent(
@@ -46,7 +46,7 @@ function find_parent(
 }
 
 export function back(router: Router) {
-	const page = (router.currentRoute.value.name ?? 'home').toString();
+	const page = (router.currentRoute.value.name ?? "home").toString();
 	const parent = get_parent(page);
 	if (parent !== undefined) {
 		router.push({

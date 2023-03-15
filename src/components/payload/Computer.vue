@@ -1,15 +1,15 @@
 <script lang="ts">
-import type { Computer } from '@/datastructures/status/computer';
-import { defineComponent, type PropType } from 'vue';
-import LED from '@/components/widgets/LED.vue';
-import Tabs from '../widgets/Tabs.vue';
-import Tab from '../widgets/Tab.vue';
-import ComputerOverview from './overview/ComputerOverview.vue';
-import ComputerCPU from './details/computers/ComputerCPU.vue';
-import ComputerMemory from './details/computers/ComputerMemory.vue';
-import ComputerStorage from './details/computers/ComputerStorage.vue';
-import { useContextMenu } from '@/stores/context';
-import { Status } from '@/datastructures/status/status_enums';
+import type { Computer } from "@/datastructures/status/computer";
+import { defineComponent, type PropType } from "vue";
+import LED from "@/components/widgets/LED.vue";
+import Tabs from "../widgets/Tabs.vue";
+import Tab from "../widgets/Tab.vue";
+import ComputerOverview from "./overview/ComputerOverview.vue";
+import ComputerCPU from "./details/computers/ComputerCPU.vue";
+import ComputerMemory from "./details/computers/ComputerMemory.vue";
+import ComputerStorage from "./details/computers/ComputerStorage.vue";
+import { useContextMenu } from "@/stores/context";
+import { Status } from "@/datastructures/status/status_enums";
 
 export default defineComponent({
 	props: {
@@ -39,19 +39,19 @@ export default defineComponent({
 			if (this.online) {
 				return this.format_seconds(this.computer!.uptime ?? 0);
 			} else {
-				return 'no data';
+				return "no data";
 			}
 		},
 		time_since_update() {
 			if (this.last_update === null || isNaN(this.last_update)) {
-				return 'never';
+				return "never";
 			} else {
 				return this.format_seconds(Math.round(this.last_update / 1000 - 0.5));
 			}
 		},
 		show_update() {
 			if (this.last_update === null || isNaN(this.last_update)) {
-				console.log('no update');
+				console.log("no update");
 				return true;
 			} else {
 				// Show update if it's been more than 5 seconds since last update
@@ -62,16 +62,16 @@ export default defineComponent({
 			switch (this.status) {
 				case Status.ONLINE:
 				case Status.RUNNING:
-					return 'green';
+					return "green";
 				case Status.OFFLINE:
-					return 'off';
+					return "off";
 				case Status.ERROR:
-					return 'red';
+					return "red";
 				case Status.STANDBY:
 				case Status.INITIALIZING:
-					return 'blue';
+					return "blue";
 				default:
-					return 'yellow';
+					return "yellow";
 			}
 		},
 		led_blink() {
@@ -87,8 +87,8 @@ export default defineComponent({
 			const minutes = Math.floor((seconds % 3600) / 60);
 			const seconds_left = seconds % 60;
 
-			const minutes_str = minutes.toString().padStart(2, '0');
-			const seconds_str = seconds_left.toString().padStart(2, '0');
+			const minutes_str = minutes.toString().padStart(2, "0");
+			const seconds_str = seconds_left.toString().padStart(2, "0");
 
 			if (hours > 0) {
 				return `${hours}:${minutes_str}:${seconds_str}`;
@@ -97,19 +97,20 @@ export default defineComponent({
 			}
 		},
 		update() {
+			this.computer?.update_status_code();
 			this.last_update = this.computer?.time_since_update ?? null;
 		},
 		testContextMenu(ev: MouseEvent) {
 			const context_menu = useContextMenu();
 			const menu = [
 				{
-					label: 'Test 1',
+					label: "Test 1",
 				},
 				{
-					label: 'Test 2',
+					label: "Test 2",
 				},
 				{
-					label: 'Test 3',
+					label: "Test 3",
 					dangerous: true,
 				},
 			];

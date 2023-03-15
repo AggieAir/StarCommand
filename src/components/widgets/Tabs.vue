@@ -1,6 +1,6 @@
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue';
-import Tab from './Tab.vue';
+import { defineComponent, type PropType } from "vue";
+import Tab from "./Tab.vue";
 
 export default defineComponent({
 	props: {
@@ -31,12 +31,12 @@ export default defineComponent({
 	},
 	methods: {
 		select(id: number) {
-			console.log(`selected tab ${id}`);
+			console.debug(`selected tab ${id}`);
 			if (!this.tabs[id].just_emit) {
 				this.selected = id;
 			}
 			console.debug(`emitting event tab:select("${this.tabs[id].name}")`);
-			this.$emit('tab:select', this.tabs[id].name);
+			this.$emit("tab:select", this.tabs[id].name);
 		},
 		increment() {
 			const new_selected = this.selected + 1;
@@ -61,9 +61,9 @@ export default defineComponent({
 		},
 	},
 	emits: {
-		'tab:select': (_: string) => true,
-		'click:right': (_: string) => true,
-		'click:middle': (_: string) => true,
+		"tab:select": (_: string) => true,
+		"click:right": (_: string) => true,
+		"click:middle": (_: string) => true,
 	},
 	components: { Tab },
 });
@@ -111,7 +111,7 @@ export interface TabDefinition {
 </template>
 
 <style lang="scss" scoped>
-@import '@/assets/base.scss';
+@import "@/assets/base.scss";
 .tabbox {
 	display: flex;
 	flex-direction: column;
