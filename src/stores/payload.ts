@@ -1,12 +1,10 @@
 import type { MissionConfiguration } from "@/datastructures/configuration";
 import type { IncomingStatusMessage } from "@/datastructures/status/heartbeats";
 import { Payload, PayloadState } from "@/datastructures/status/payload";
-import type { Heartbeat, HeartbeatType } from "@/datastructures/status_input";
 import { Notification, NotificationUrgency } from "@/notification";
 import { defineStore } from "pinia";
 import { useAlert } from "./alert";
 import { useDatalink } from "./datalink";
-import { useLogging } from "./logs";
 import { useNotifications } from "./notifications";
 import { useSettingsStore } from "./settings";
 
@@ -33,12 +31,15 @@ export const usePayloadStore = defineStore({
 			config?: MissionConfiguration,
 			manual_load: boolean = false
 		) {
-			console.log(`manual_load: ${manual_load}`);
+			const old_uuid = this.payload?.config?.uuid;
 			if (config?.uuid) {
 				localStorage.setItem("config_uuid", config.uuid);
 			}
 			if (config) {
 				this.payload = new Payload(config);
+				if (old_uuid != undefined) {
+					this.payload.temporarily_ignore_uuid(old_uuid);
+				}
 				if (useDatalink().telemetry_connected && manual_load) {
 					console.log("Uploading config");
 					const result = await useAlert().open({

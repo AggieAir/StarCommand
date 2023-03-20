@@ -1,4 +1,4 @@
-import type { IncomingMessage, OutgoingMessage } from "@/datalink";
+import type { IncomingMessage } from "@/datalink";
 import { defineStore } from "pinia";
 import { useNotifications } from "./notifications";
 import {
@@ -7,14 +7,20 @@ import {
 	NotificationUrgency,
 } from "@/notification";
 import router from "@/router";
-import type {
-	ConfigResponse,
-	ControlMessage,
-	ParameterList,
-	ParameterResponse,
-} from "@/datastructures/status/control";
+import type { ControlMessage } from "@/datastructures/status/control";
 import type { MissionConfiguration } from "@/datastructures/configuration";
 import { useSettingsStore } from "./settings";
+
+export const KNOWN_MESSAGE_TYPES = [
+	"status",
+	"parameter-response",
+	"parameter-request",
+	"parameter-list",
+	"upload-config",
+	"config-response",
+	"computer_discovered",
+	"computer_removed",
+];
 
 const telemetry_no_addr_notif = new Notification(
 	"Telemetry server address not set.",
@@ -267,57 +273,5 @@ export const useDatalink = defineStore({
 				resolve();
 			});
 		},
-		// 	async set_parameter(computer: string, name: string, value: any) {
-		// 		if (!this.config_connected) {
-		// 			console.error('Config server is offline, cannot set parameter.');
-		// 			return;
-		// 		}
-		// 		return new Promise<ParameterResponse>((resolve) => {
-		// 			const msg = {
-		// 				type: 'set-parameter',
-		// 				computer,
-		// 				name,
-		// 				value: JSON.stringify(value),
-		// 			};
-		// 			this.config_connection?.send(JSON.stringify(msg));
-		// 			const config_callback = (msg: any) => {
-		// 				if (msg.type === 'parameter-response') {
-		// 					this.config_callbacks = this.config_callbacks.filter(
-		// 						(c) => c !== config_callback
-		// 					);
-		// 					resolve(msg);
-		// 				}
-		// 			};
-		// 			this.config_callbacks.push(config_callback);
-		// 		});
-		// 	},
-		// 	async get_parameters(computer: string) {
-		// 		if (!this.config_connected) {
-		// 			console.error('Config server is offline, cannot get parameters.');
-		// 			return;
-		// 		}
-		// 		return new Promise<ParameterList>((resolve) => {
-		// 			const msg = {
-		// 				type: 'parameter-request',
-		// 				computer,
-		// 			};
-		// 			this.config_connection?.send(JSON.stringify(msg));
-		// 			const config_callback = (msg: any) => {
-		// 				if (msg.type === 'parameter-list') {
-		// 					this.config_callbacks = this.config_callbacks.filter(
-		// 						(c) => c !== config_callback
-		// 					);
-		// 					resolve(msg);
-		// 				}
-		// 			};
-		// 			this.config_callbacks.push(config_callback);
-		// 		});
-		// 	},
-		// 	refresh_systems() {
-		// 		const msg = {
-		// 			type: 'refresh',
-		// 		};
-		// 		this.config_connection?.send(JSON.stringify(msg));
-		// 	},
 	},
 });

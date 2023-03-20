@@ -5,7 +5,7 @@ import {
 	NotificationUrgency,
 } from "@/notification";
 import { Alert, useAlert } from "@/stores/alert";
-import { useDatalink } from "@/stores/datalink";
+import { KNOWN_MESSAGE_TYPES, useDatalink } from "@/stores/datalink";
 import { useLogging } from "@/stores/logs";
 import { useNotifications } from "@/stores/notifications";
 import { usePayloadStore } from "@/stores/payload";
@@ -189,7 +189,26 @@ export class Payload {
 		}
 	}
 
-	public constructor(private _config?: MissionConfiguration) {
+	/**
+	 * Ignores a UUID for the next minute. Used primarily to prevent extraneous
+	 * load prompts from showing up while a config is uploading.
+	 * @param uuid The UUID to temporarily ignore
+	 */
+	public async temporarily_ignore_uuid(uuid: string) {
+		this.uuids_to_ignore.push(uuid);
+		await new Promise((resolve) => {
+			setTimeout(resolve, 60000);
+		});
+		this.uuids_to_ignore = this.uuids_to_ignore.filter(
+			(entry) => entry !== uuid
+		);
+	}
+
+	public constructor(
+		private _config?: MissionConfiguration,
+		...initial_uuid_ignore_list: string[]
+	) {
+		this.uuids_to_ignore.concat(initial_uuid_ignore_list);
 		logging = logging ?? useLogging();
 		// With lack of config, assume both computers exist.
 		if (!_config) {
@@ -229,18 +248,19 @@ export class Payload {
 
 	public handle_message(message: IncomingStatusMessage): void {
 		if (message_is_capture_group_heartbeat(message)) {
-			this._capture_groups
-				.get(message.capture_group)
-				?.parse_heartbeat(message.payload);
+			const capture_group = this._capture_groups.get(message.capture_group);
+			if (capture_group === undefined) {
+				console.error("Received heartbeat for unknown capture group");
+			} else {
+				capture_group.parse_heartbeat(message.payload);
+			}
 		} else if (message_is_node_heartbeat(message)) {
 			const node = this.find_node(message);
 			if (node === undefined) {
-				console.error(
-					`Received message for unknown node ${message.system}/${message.computer}/${message.capture_group}/${message.sensor}/${message.node}`
-				);
-				return;
+				console.error("Received heartbeat for unknown node");
+			} else {
+				node.parse_heartbeat(message.payload);
 			}
-			node.parse_heartbeat(message.payload);
 		} else if (message_is_computer_status(message)) {
 			if (message.computer.includes("copilot")) {
 				this._copilot_computer?.parse_heartbeat(message.payload);
@@ -251,8 +271,8 @@ export class Payload {
 			this.parse_heartbeat(message.payload as any as PayloadHeartbeat);
 		} else if (message_is_copilot_heartbeat(message)) {
 			// Do nothing
-		} else {
-			console.error(`Unknown message type: ${JSON.stringify(message)}`);
+		} else if (!KNOWN_MESSAGE_TYPES.includes(message.type)) {
+			console.error(`Unknown message type ${message.type}:`, message);
 		}
 	}
 

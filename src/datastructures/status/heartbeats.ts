@@ -122,41 +122,41 @@ export interface IncomingStatusMessage {
 	 * For heartbeats, this will be 'heartbeat'.
 	 * For computer status, this will be 'system_status'.
 	 */
-	topic: 'heartbeat' | 'status';
+	topic: "heartbeat" | "status";
 	/**
 	 * Differentiates this messsage from other incoming messages.
 	 */
-	type: 'status';
+	type: "status";
 }
 
 export type ProcessingNodeHeartbeatMsg = Required<
 	IncomingStatusMessage & {
 		payload: Heartbeat;
-		topic: 'heartbeat';
+		topic: "heartbeat";
 	}
 >;
 export type CaptureGroupHeartbeatMsg = Required<
-	Omit<IncomingStatusMessage, 'node' | 'sensor'> & {
+	Omit<IncomingStatusMessage, "node" | "sensor"> & {
 		payload: Heartbeat;
-		topic: 'heartbeat';
+		topic: "heartbeat";
 	}
 >;
 export type CoprocessorHeartbeatMsg = Required<
-	Omit<IncomingStatusMessage, 'sensor' | 'capture_group'> & {
+	Omit<IncomingStatusMessage, "sensor" | "capture_group"> & {
 		payload: Heartbeat;
-		topic: 'heartbeat';
+		topic: "heartbeat";
 	}
 >;
 export type PayloadHeartbeatMsg = Required<
-	Omit<IncomingStatusMessage, 'node' | 'sensor' | 'capture_group'> & {
+	Omit<IncomingStatusMessage, "node" | "sensor" | "capture_group"> & {
 		payload: Heartbeat;
-		topic: 'heartbeat';
+		topic: "heartbeat";
 	}
 >;
 export type ComputerStatusMsg = Required<
-	Omit<IncomingStatusMessage, 'node' | 'sensor' | 'capture_group'> & {
+	Omit<IncomingStatusMessage, "node" | "sensor" | "capture_group"> & {
 		payload: ComputerStatus;
-		topic: 'status';
+		topic: "status";
 	}
 >;
 
@@ -167,7 +167,7 @@ export function message_is_node_heartbeat(
 		message.node !== null &&
 		message.sensor !== null &&
 		message.capture_group !== null &&
-		message.topic === 'heartbeat'
+		message.topic === "heartbeat"
 	);
 }
 
@@ -178,7 +178,7 @@ export function message_is_capture_group_heartbeat(
 		message.node === null &&
 		message.sensor === null &&
 		message.capture_group !== null &&
-		message.topic === 'heartbeat'
+		message.topic === "heartbeat"
 	);
 }
 
@@ -189,7 +189,7 @@ export function message_is_coprocessor_heartbeat(
 		message.node !== null &&
 		message.sensor === null &&
 		message.capture_group === null &&
-		message.topic === 'heartbeat'
+		message.topic === "heartbeat"
 	);
 }
 
@@ -200,8 +200,8 @@ export function message_is_payload_heartbeat(
 		message.node === null &&
 		message.sensor === null &&
 		message.capture_group === null &&
-		message.topic === 'heartbeat' &&
-		!message.computer.includes('copilot')
+		message.topic === "heartbeat" &&
+		!message.computer.includes("copilot")
 	);
 }
 
@@ -212,8 +212,8 @@ export function message_is_copilot_heartbeat(
 		message.node === null &&
 		message.sensor === null &&
 		message.capture_group === null &&
-		message.topic === 'heartbeat' &&
-		message.computer.includes('copilot')
+		message.topic === "heartbeat" &&
+		message.computer.includes("copilot")
 	);
 }
 
@@ -224,6 +224,6 @@ export function message_is_computer_status(
 		message.node === null &&
 		message.sensor === null &&
 		message.capture_group === null &&
-		message.topic === 'status'
+		message.topic === "status"
 	);
 }
