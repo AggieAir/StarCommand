@@ -150,6 +150,12 @@ export class Payload {
 		return this._config;
 	}
 
+	private _temperatures: Map<string, number> = new Map([["battery 1", 25.5]]);
+
+	public get temperatures(): Readonly<Map<string, number>> {
+		return this._temperatures;
+	}
+
 	public get state_string(): string {
 		switch (this._state) {
 			case PayloadState.OFFLINE:

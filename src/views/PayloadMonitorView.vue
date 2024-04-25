@@ -14,6 +14,7 @@ import MissionOverview from "../components/payload/overview/MissionOverview.vue"
 import { type Payload, PayloadState } from "@/datastructures/status/payload";
 import Tabs from "../components/widgets/Tabs.vue";
 import Button from "../components/widgets/Button.vue";
+import TemperatureBox from "../components/TemperatureBox.vue";
 import Control from "../components/payload/Control.vue";
 import type { CaptureGroup } from "@/datastructures/status/capture_group";
 import CaptureGroupDetail from "../components/payload/details/CaptureGroupDetail.vue";
@@ -62,6 +63,11 @@ export default defineComponent({
 		}
 		this.payloadStore.initialize();
 	},
+	data() {
+		return {
+			temperaturesHidden:true
+		};
+	},
 	computed: {
 		// ...mapState(usePayloadStore, ['payload']),
 		payload(): Payload | null {
@@ -95,6 +101,7 @@ export default defineComponent({
 		Button,
 		Control,
 		CaptureGroupDetail,
+		TemperatureBox
 	},
 });
 </script>
@@ -102,6 +109,12 @@ export default defineComponent({
 <template>
 	<div class="monitor-view">
 		<div class="monitor-header">
+			<span
+				:class="{'temps-button': true, show: temperaturesHidden, hide: !temperaturesHidden}"
+				@click="temperaturesHidden = !temperaturesHidden"
+			>
+				{{ temperaturesHidden ? "Show" : "Hide" }} Temperatures
+			</span>
 			<span v-if="payloadStore.payload" class="monitor-title">
 				{{ payloadStore.payload.config?.name ?? "" }} Payload Monitor
 			</span>
@@ -109,6 +122,9 @@ export default defineComponent({
 			<span class="monitor-subtitle" v-if="payload">
 				{{ payload.state_string }}
 			</span>
+			<div class="temperature-entry-box" v-if="payload && !temperaturesHidden">
+				<TemperatureBox :temperatures="payload.temperatures" />
+			</div>
 		</div>
 		<Tabs :tabs="tabs" bottom class="main">
 			<template #overview>
@@ -145,6 +161,37 @@ export default defineComponent({
 		align-items: center;
 		justify-content: center;
 		padding: 0.5rem;
+
+		.temps-button {
+			position: absolute;
+			top: 5px;
+			right: 10px;
+			padding: 5px 12px;
+			font-size: 0.8rem;
+			cursor: pointer;
+
+			&.show {
+				color: var(--color-green);
+			}
+
+			&.hide {
+				color: var(--color-red);
+			}
+
+			&:hover {
+				background-color: var(--color-background-soft);
+			}
+		}
+
+		.temperature-entry-box {
+			background: var(--color-background);
+			border-color: var(--color-border);
+			border-width: 1px;
+			border-style: solid;
+			position: absolute;
+			top: 2rem;
+			right: 10px;
+		}
 
 		.monitor-title {
 			font-size: 1.7rem;
