@@ -20,6 +20,7 @@ export const KNOWN_MESSAGE_TYPES = [
 	"config-response",
 	"computer_discovered",
 	"computer_removed",
+	"temperature",
 ];
 
 const telemetry_no_addr_notif = new Notification(

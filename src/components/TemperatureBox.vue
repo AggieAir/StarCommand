@@ -16,7 +16,7 @@ export default defineComponent({
 	<div class="temperature-entries">
 		<div class="entry" v-for="[label, reading] in temperatures">
 			<span class="label">{{ label }}:</span>
-			<span>{{reading}} &deg;C</span>
+			<span>{{reading.toFixed(2)}} &deg;C</span>
 		</div>
 		<!--<span class="exit-button">X</span>-->
 	</div>

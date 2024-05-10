@@ -150,7 +150,7 @@ export class Payload {
 		return this._config;
 	}
 
-	private _temperatures: Map<string, number> = new Map([["battery 1", 25.5]]);
+	private _temperatures: Map<string, number> = new Map();
 
 	public get temperatures(): Readonly<Map<string, number>> {
 		return this._temperatures;
@@ -253,7 +253,12 @@ export class Payload {
 	}
 
 	public handle_message(message: IncomingStatusMessage): void {
-		if (message_is_capture_group_heartbeat(message)) {
+		if (message.type === "temperature") {
+			this._temperatures.length = 0;
+			for (let i = 0; i < message.payload.ids.length; i++) {
+				this._temperatures.set(message.payload.ids[i], message.payload.readings[i]);
+			}
+		} else if (message_is_capture_group_heartbeat(message)) {
 			const capture_group = this._capture_groups.get(message.capture_group);
 			if (capture_group === undefined) {
 				console.error("Received heartbeat for unknown capture group");

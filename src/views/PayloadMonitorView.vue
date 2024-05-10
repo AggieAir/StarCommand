@@ -191,6 +191,7 @@ export default defineComponent({
 			position: absolute;
 			top: 2rem;
 			right: 10px;
+			z-index: 1;
 		}
 
 		.monitor-title {
