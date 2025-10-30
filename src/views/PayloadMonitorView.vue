@@ -11,6 +11,7 @@ import { usePayloadStore } from "@/stores/payload";
 import { defineComponent } from "vue";
 import ComputerStatus from "@/components/payload/Computer.vue";
 import MissionOverview from "../components/payload/overview/MissionOverview.vue";
+import MissionCommandsBox from "@/components/MissionCommandsBox.vue";
 import { type Payload, PayloadState } from "@/datastructures/status/payload";
 import Tabs from "../components/widgets/Tabs.vue";
 import Button from "../components/widgets/Button.vue";
@@ -62,6 +63,11 @@ export default defineComponent({
 		}
 		this.payloadStore.initialize();
 	},
+	data() {
+		return {
+			missionCommandsHidden:true
+		};
+	},
 	computed: {
 		// ...mapState(usePayloadStore, ['payload']),
 		payload(): Payload | null {
@@ -95,6 +101,7 @@ export default defineComponent({
 		Button,
 		Control,
 		CaptureGroupDetail,
+		MissionCommandsBox
 	},
 });
 </script>
@@ -102,6 +109,12 @@ export default defineComponent({
 <template>
 	<div class="monitor-view">
 		<div class="monitor-header">
+			<span
+				:class="{'mission-command-button': true, show: missionCommandsHidden, hide: !missionCommandsHidden}"
+				@click="missionCommandsHidden = !missionCommandsHidden"
+			>
+				{{ missionCommandsHidden ? "Show" : "Hide" }} Mission Commands
+			</span>
 			<span v-if="payloadStore.payload" class="monitor-title">
 				{{ payloadStore.payload.config?.name ?? "" }} Payload Monitor
 			</span>
@@ -109,6 +122,9 @@ export default defineComponent({
 			<span class="monitor-subtitle" v-if="payload">
 				{{ payload.state_string }}
 			</span>
+			<div class="mission-command-entry-box" v-if="payload && !missionCommandsHidden">
+				<MissionCommandsBox />
+			</div>
 		</div>
 		<Tabs :tabs="tabs" bottom class="main">
 			<template #overview>
@@ -145,6 +161,38 @@ export default defineComponent({
 		align-items: center;
 		justify-content: center;
 		padding: 0.5rem;
+
+		.mission-command-button {
+			position: absolute;
+			top: 5px;
+			right: 10px;
+			padding: 5px 12px;
+			font-size: 0.8rem;
+			cursor: pointer;
+
+			&.show {
+				color: var(--color-green);
+			}
+
+			&.hide {
+				color: var(--color-red);
+			}
+
+			&:hover {
+				background-color: var(--color-background-soft);
+			}
+		}
+
+		.mission-command-entry-box {
+			background: var(--color-background);
+			border-color: var(--color-border);
+			border-width: 1px;
+			border-style: solid;
+			position: absolute;
+			top: 2rem;
+			right: 10px;
+			z-index: 1;
+		}
 
 		.monitor-title {
 			font-size: 1.7rem;
